@@ -34,9 +34,7 @@ public class WebEdit extends JApplet
 	{
 		try
 		{
-			log.info("Start build UI");
 			new UserInterface(new EditorUI(),this);
-			log.info("UI complete");
 		}
 		catch (Exception e)
 		{
