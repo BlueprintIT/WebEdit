@@ -17,14 +17,14 @@
 			<separator/>
 			<combobox id="style" initclass="com.blueprintit.webedit.StyleModel" focusable="false" action="applyStyleAction"/>
 			<separator/>
-			<togglebutton id="leftAlign" action="leftAlignAction" focusable="false">Left</togglebutton>
-			<togglebutton id="centerAlign" action="centerAlignAction" focusable="false">Center</togglebutton>
-			<togglebutton id="rightAlign" action="rightAlignAction" focusable="false">Right</togglebutton>
-			<togglebutton id="justifyAlign" action="justifiedAlignAction" focusable="false">Justified</togglebutton>
+			<togglebutton id="leftAlign" action="leftAlignAction" focusable="false"/>
+			<togglebutton id="centerAlign" action="centerAlignAction" focusable="false"/>
+			<togglebutton id="rightAlign" action="rightAlignAction" focusable="false"/>
+			<togglebutton id="justifyAlign" action="justifiedAlignAction" focusable="false"/>
 			<separator/>
-			<togglebutton id="bold" action="boldAction" focusable="false">Bold</togglebutton>
-			<togglebutton id="italic" action="italicAction" focusable="false">Italic</togglebutton>
-			<togglebutton id="underline" action="underlineAction" focusable="false">Underline</togglebutton>
+			<togglebutton id="bold" action="boldAction" focusable="false"/>
+			<togglebutton id="italic" action="italicAction" focusable="false"/>
+			<togglebutton id="underline" action="underlineAction" focusable="false"/>
 		</toolbar>
 	</panel>
 	<editorpane id="editorPane" contentType="text/html"/>

@@ -27,7 +27,6 @@ public class StyleModel extends AbstractListModel implements ComboBoxModel
 		styles.add(new Style("Heading 5",HTML.Tag.H5,null));
 		styles.add(new Style("Heading 6",HTML.Tag.H6,null));
 		styles.add(new Style("Normal",HTML.Tag.P,null));
-		selected=styles.get(6);
 	}
 	
 	public void setSelectedItem(Object anItem)

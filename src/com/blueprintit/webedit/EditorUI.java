@@ -11,6 +11,8 @@ import java.awt.event.ActionEvent;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
 import javax.swing.JToggleButton;
@@ -53,6 +55,8 @@ public class EditorUI implements InterfaceListener
 	public JToggleButton bold;
 	public JToggleButton italic;
 	public JToggleButton underline;
+	
+	private String resources = "com/blueprintit/webedit";
 	
 	public Action saveAction = new AbstractAction() {
 		public void actionPerformed(ActionEvent ev)
@@ -128,6 +132,26 @@ public class EditorUI implements InterfaceListener
 		}
 	};
 	
+	public EditorUI()
+	{
+		setupToolbarButton(leftAlignAction,"","Left Align","icons/left-align.gif");
+		setupToolbarButton(centerAlignAction,"","Center Align","icons/center-align.gif");
+		setupToolbarButton(rightAlignAction,"","Right Align","icons/right-align.gif");
+		setupToolbarButton(justifiedAlignAction,"","Justify","icons/justified-align.gif");
+
+		setupToolbarButton(boldAction,"","Bold","icons/bold.gif");
+		setupToolbarButton(italicAction,"","Italic","icons/italic.gif");
+		setupToolbarButton(underlineAction,"","Underline","icons/underline.gif");
+	}
+	
+	private void setupToolbarButton(Action action, String name, String tooltip, String icon)
+	{
+		Icon ic = new ImageIcon(this.getClass().getClassLoader().getResource(resources+"/"+icon));
+		action.putValue(Action.SMALL_ICON,ic);
+		action.putValue(Action.SHORT_DESCRIPTION,tooltip);
+		action.putValue(Action.NAME,name);
+	}
+	
 	private void compareBlockAttribute(MutableAttributeSet attrs, Element el, Object key, boolean first)
 	{
 		compareAttribute(attrs,findBlockElement(el),key,first);
@@ -201,6 +225,12 @@ public class EditorUI implements InterfaceListener
 		if (caret.getDot()==caret.getMark())
 		{
 			Element el = ((HTMLDocument)editorPane.getDocument()).getCharacterElement(caret.getDot());
+			Element blockel = findBlockElement(el);
+			AttributeSet style = ((HTMLDocument)editorPane.getDocument()).getStyleSheet().getRule((HTML.Tag)blockel.getAttributes().getAttribute(StyleConstants.NameAttribute),blockel);
+			if (style.isDefined(StyleConstants.Alignment))
+			{
+				System.out.println("Alignment is "+StyleConstants.getAlignment(style));
+			}
 			attr = buildAttributeSet(new Element[] {el});
 		}
 		else
@@ -208,7 +238,11 @@ public class EditorUI implements InterfaceListener
 			attr = new SimpleAttributeSet();
 		}
 		
-		int align = StyleConstants.getAlignment(attr);
+		int align = -1;
+		if (attr.isDefined(StyleConstants.Alignment))
+		{
+			align=StyleConstants.getAlignment(attr);
+		}
 		leftAlign.setSelected(align==StyleConstants.ALIGN_LEFT);
 		centerAlign.setSelected(align==StyleConstants.ALIGN_CENTER);
 		rightAlign.setSelected(align==StyleConstants.ALIGN_RIGHT);
@@ -253,5 +287,6 @@ public class EditorUI implements InterfaceListener
 				updateToolbar();
 			}
 		});
+		//updateToolbar();
 	}
 }
