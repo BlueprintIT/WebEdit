@@ -1,0 +1,22 @@
+<!--
+	$HeadURL$
+	$LastChangedBy$
+	$Date$
+	$Revision$
+-->
+
+<applet layout="BorderLayout">
+	<panel constraints="BorderLayout.NORTH" layout="GridLayout(2,1)">
+		<toolbar rollover="true" floatable="false">
+			<label>General</label>
+			<separator/>
+		</toolbar>
+		<toolbar rollover="true" floatable="false">
+			<label>Formatting</label>
+			<separator/>
+			<button action="boldAction">Bold</button>
+			<button action="italicAction">Italic</button>
+		</toolbar>
+	</panel>
+	<editorpane id="editorPane" contentType="text/html"/>
+</applet>
