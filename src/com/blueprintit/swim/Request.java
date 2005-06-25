@@ -1,6 +1,6 @@
 /*
- * $Author$
- * $RCSfile$
+ * $HeadURL$
+ * $LastChangedBy$
  * $Date$
  * $Revision$
  */
