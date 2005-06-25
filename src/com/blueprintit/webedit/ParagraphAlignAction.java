@@ -10,12 +10,9 @@ import javax.swing.text.StyledEditorKit.AlignmentAction;
 
 public class ParagraphAlignAction extends AlignmentAction
 {
-	private int alignment;
-	
 	public ParagraphAlignAction(int alignment)
 	{
 		super("paragraph-align",alignment);
-		this.alignment=alignment;
 	}
 	
 	/*public void actionPerformed(ActionEvent ev)
