@@ -6,15 +6,7 @@
  */
 package com.blueprintit.webedit;
 
-import java.awt.event.ActionEvent;
-
-import javax.swing.JEditorPane;
-import javax.swing.text.MutableAttributeSet;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledEditorKit.AlignmentAction;
-import javax.swing.text.html.CSS;
-import javax.swing.text.html.HTML;
 
 public class ParagraphAlignAction extends AlignmentAction
 {

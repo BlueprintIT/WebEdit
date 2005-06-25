@@ -26,6 +26,7 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledEditorKit;
 import javax.swing.text.html.HTML;
+import javax.swing.text.html.StyleSheet;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.text.html.HTML.Tag;
@@ -36,25 +37,32 @@ import com.blueprintit.webedit.htmlkit.WebEditEditorKit;
 import com.blueprintit.xui.InterfaceEvent;
 import com.blueprintit.xui.InterfaceListener;
 import com.blueprintit.xui.UserInterface;
+import com.blueprintit.swim.SwimInterface;
 
 public class EditorUI implements InterfaceListener
 {
 	private Logger log = Logger.getLogger(this.getClass());
 
-	public JEditorPane editorPane;
-	public HTMLEditorKit editorKit;
-	public UserInterface ui;
+	private SwimInterface swim;
+	private String path;
 	
-	public JComboBox style;
+	private JEditorPane editorPane;
+	private HTMLEditorKit editorKit;
+	private HTMLDocument document;
+	private Element body;
+	private StyleSheet stylesheet;
+	private UserInterface ui;
 	
-	public JToggleButton leftAlign;
-	public JToggleButton rightAlign;
-	public JToggleButton centerAlign;
-	public JToggleButton justifyAlign;
+	private JComboBox style;
 	
-	public JToggleButton bold;
-	public JToggleButton italic;
-	public JToggleButton underline;
+	private JToggleButton leftAlign;
+	private JToggleButton rightAlign;
+	private JToggleButton centerAlign;
+	private JToggleButton justifyAlign;
+	
+	private JToggleButton bold;
+	private JToggleButton italic;
+	private JToggleButton underline;
 	
 	private String resources = "com/blueprintit/webedit";
 	
@@ -132,8 +140,11 @@ public class EditorUI implements InterfaceListener
 		}
 	};
 	
-	public EditorUI()
+	public EditorUI(SwimInterface swim, String path)
 	{
+		this.swim=swim;
+		this.path=path;
+		
 		setupToolbarButton(leftAlignAction,"","Left Align","icons/left-align.gif");
 		setupToolbarButton(centerAlignAction,"","Center Align","icons/center-align.gif");
 		setupToolbarButton(rightAlignAction,"","Right Align","icons/right-align.gif");
@@ -190,7 +201,7 @@ public class EditorUI implements InterfaceListener
 		}
 	}
 	
-	public void build(MutableAttributeSet attr, Element el, boolean first)
+	private void build(MutableAttributeSet attr, Element el, boolean first)
 	{
 		compareBlockAttribute(attr,el,StyleConstants.NameAttribute,first);
 		compareBlockAttribute(attr,el,HTML.Attribute.CLASS,first);
@@ -200,7 +211,7 @@ public class EditorUI implements InterfaceListener
 		compareAttribute(attr,el,StyleConstants.Underline,first);
 	}
 	
-	public AttributeSet buildAttributeSet(Element[] elements)
+	private AttributeSet buildAttributeSet(Element[] elements)
 	{
 		if (elements.length>0)
 		{
@@ -218,7 +229,7 @@ public class EditorUI implements InterfaceListener
 		}
 	}
 	
-	public void updateToolbar()
+	private void updateToolbar()
 	{
 		Caret caret = editorPane.getCaret();
 		AttributeSet attr;
@@ -275,6 +286,27 @@ public class EditorUI implements InterfaceListener
 		}
 	}
 	
+	private Element findBody(Element element)
+	{
+		AttributeSet attrs = element.getAttributes();
+		if (attrs.getAttribute(StyleConstants.NameAttribute)==HTML.Tag.BODY)
+		{
+			return element;
+		}
+		else
+		{
+			for (int i=0; i<element.getElementCount(); i++)
+			{
+				Element test = findBody(element.getElement(i));
+				if (test!=null)
+				{
+					return test;
+				}
+			}
+		}
+		return null;
+	}
+	
 	public void interfaceCreated(InterfaceEvent ev)
 	{
 		ui=ev.getUserInterface();
@@ -287,6 +319,22 @@ public class EditorUI implements InterfaceListener
 				updateToolbar();
 			}
 		});
+		try
+		{
+			document=(HTMLDocument)editorKit.createDefaultDocument();
+			stylesheet = new StyleSheet();
+			editorPane.setDocument(document);
+			body=findBody(document.getDefaultRootElement());
+			StringBuffer html = new StringBuffer(swim.getResource(path));
+			html.insert(0,"<div id=\"content\" class=\"block\">\n");
+			html.append("</div>\n");
+			document.setInnerHTML(body,html.toString());
+		}
+		catch (Exception e)
+		{
+			log.error(e);
+			e.printStackTrace();
+		}
 		//updateToolbar();
 	}
 }
