@@ -8,6 +8,8 @@ package com.blueprintit.webedit;
 
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -29,14 +31,12 @@ import javax.swing.text.html.HTML;
 import javax.swing.text.html.StyleSheet;
 import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
-import javax.swing.text.html.HTML.Tag;
-
 import org.apache.log4j.Logger;
 
 import com.blueprintit.webedit.htmlkit.WebEditEditorKit;
 import com.blueprintit.xui.InterfaceEvent;
 import com.blueprintit.xui.InterfaceListener;
-import com.blueprintit.xui.UserInterface;
+import com.blueprintit.swim.Request;
 import com.blueprintit.swim.SwimInterface;
 
 public class EditorUI implements InterfaceListener
@@ -44,15 +44,14 @@ public class EditorUI implements InterfaceListener
 	private Logger log = Logger.getLogger(this.getClass());
 
 	private SwimInterface swim;
-	private String path;
+	private String htmlPath;
+	private String stylePath;
 	
 	private JEditorPane editorPane;
 	private HTMLEditorKit editorKit;
 	private HTMLDocument document;
 	private Element body;
 	private StyleSheet stylesheet;
-	private UserInterface ui;
-	
 	private JComboBox style;
 	
 	private JToggleButton leftAlign;
@@ -140,10 +139,11 @@ public class EditorUI implements InterfaceListener
 		}
 	};
 	
-	public EditorUI(SwimInterface swim, String path)
+	public EditorUI(SwimInterface swim, String path, String style)
 	{
 		this.swim=swim;
-		this.path=path;
+		this.htmlPath=path;
+		this.stylePath=style;
 		
 		setupToolbarButton(leftAlignAction,"","Left Align","icons/left-align.gif");
 		setupToolbarButton(centerAlignAction,"","Center Align","icons/center-align.gif");
@@ -163,127 +163,143 @@ public class EditorUI implements InterfaceListener
 		action.putValue(Action.NAME,name);
 	}
 	
-	private void compareBlockAttribute(MutableAttributeSet attrs, Element el, Object key, boolean first)
+	private Iterator getCharacterElementIterator(int start, int end)
 	{
-		compareAttribute(attrs,findBlockElement(el),key,first);
+		if (end<start)
+		{
+			int temp = start;
+			start=end;
+			end=temp;
+		}
+		LinkedList elements = new LinkedList();
+		Element element = document.getCharacterElement(start);
+		elements.add(element);
+		while (element.getEndOffset()<end)
+		{
+			int pos=element.getEndOffset();
+			element=document.getCharacterElement(pos);
+			elements.add(element);
+		}
+		return elements.iterator();
 	}
 	
-	private void compareAttribute(MutableAttributeSet attrs, Element el, Object key, boolean first)
+	private Iterator getParagraphElementIterator(int start, int end)
 	{
-		Object value = attrs.getAttribute(key);
-		if ((first)||(value!=null))
+		if (end<start)
 		{
-			Object newvalue = el.getAttributes().getAttribute(key);
-			if (newvalue!=null)
+			int temp = start;
+			start=end;
+			end=temp;
+		}
+		LinkedList elements = new LinkedList();
+		Element element = document.getParagraphElement(start);
+		elements.add(element);
+		while (element.getEndOffset()<end)
+		{
+			int pos=element.getEndOffset();
+			element=document.getParagraphElement(pos);
+			elements.add(element);
+		}
+		return elements.iterator();
+	}
+	
+	private Object findAttribute(Element element, Object attribute)
+	{
+		AttributeSet attrs = element.getAttributes();
+		if (attrs!=null)
+		{
+			if (attrs.isDefined(attribute))
+				return attrs.getAttribute(attribute);
+
+			if (attrs.isDefined(StyleConstants.NameAttribute))
+			{
+				Object tag = attrs.getAttribute(StyleConstants.NameAttribute);
+				if (tag instanceof HTML.Tag)
+				{
+					attrs = stylesheet.getRule((HTML.Tag)tag,element);
+					if ((attrs!=null)&&(attrs.isDefined(attribute)))
+						return attrs.getAttribute(attribute);
+				}
+			}
+		}
+		element=element.getParentElement();
+		if (element!=null)
+			return findAttribute(element,attribute);
+		
+		return null;
+	}
+	
+	private void matchElementAttribute(Element element, MutableAttributeSet attrs, boolean first, Object attribute)
+	{
+		if ((first)||(attrs.isDefined(attribute)))
+		{
+			Object value = findAttribute(element,attribute);
+			if (value!=null)
 			{
 				if (first)
 				{
-					attrs.addAttribute(key,newvalue);
+					attrs.addAttribute(attribute,value);
 				}
-				else if (newvalue!=value)
+				else
 				{
-					attrs.removeAttribute(key);
+					if (!value.equals(attrs.getAttribute(attribute)))
+						attrs.removeAttribute(attribute);
 				}
 			}
 		}
 	}
 	
-	private Element findBlockElement(Element el)
+	private void matchElementAttributes(Element element, MutableAttributeSet attrs, boolean first)
 	{
-		HTML.Tag tag = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
-		if (tag.isBlock())
-		{
-			return el;
-		}
-		else
-		{
-			return findBlockElement(el.getParentElement());
-		}
-	}
-	
-	private void build(MutableAttributeSet attr, Element el, boolean first)
-	{
-		compareBlockAttribute(attr,el,StyleConstants.NameAttribute,first);
-		compareBlockAttribute(attr,el,HTML.Attribute.CLASS,first);
-		compareAttribute(attr,el,StyleConstants.Alignment,first);
-		compareAttribute(attr,el,StyleConstants.Bold,first);
-		compareAttribute(attr,el,StyleConstants.Italic,first);
-		compareAttribute(attr,el,StyleConstants.Underline,first);
-	}
-	
-	private AttributeSet buildAttributeSet(Element[] elements)
-	{
-		if (elements.length>0)
-		{
-			MutableAttributeSet attr = new SimpleAttributeSet();
-			build(attr,elements[0],true);
-			for (int i=1; i<elements.length; i++)
-			{
-				build(attr,elements[i],false);
-			}
-			return attr;
-		}
-		else
-		{
-			return new SimpleAttributeSet();
-		}
+		matchElementAttribute(element,attrs,first,StyleConstants.Alignment);
+		matchElementAttribute(element,attrs,first,StyleConstants.Bold);
+		matchElementAttribute(element,attrs,first,StyleConstants.Italic);
+		matchElementAttribute(element,attrs,first,StyleConstants.Underline);
 	}
 	
 	private void updateToolbar()
 	{
 		Caret caret = editorPane.getCaret();
-		AttributeSet attr;
-		if (caret.getDot()==caret.getMark())
+		
+		MutableAttributeSet attrs = new SimpleAttributeSet();
+		Iterator elements = getCharacterElementIterator(caret.getDot(),caret.getMark());
+		Element element = (Element)elements.next();
+		matchElementAttributes(element,attrs,true);
+		while (elements.hasNext())
 		{
-			Element el = ((HTMLDocument)editorPane.getDocument()).getCharacterElement(caret.getDot());
-			Element blockel = findBlockElement(el);
-			AttributeSet style = ((HTMLDocument)editorPane.getDocument()).getStyleSheet().getRule((HTML.Tag)blockel.getAttributes().getAttribute(StyleConstants.NameAttribute),blockel);
-			if (style.isDefined(StyleConstants.Alignment))
-			{
-				System.out.println("Alignment is "+StyleConstants.getAlignment(style));
-			}
-			attr = buildAttributeSet(new Element[] {el});
-		}
-		else
-		{
-			attr = new SimpleAttributeSet();
+			element=(Element)elements.next();
+			matchElementAttributes(element,attrs,false);
 		}
 		
 		int align = -1;
-		if (attr.isDefined(StyleConstants.Alignment))
+		if (attrs.isDefined(StyleConstants.Alignment))
 		{
-			align=StyleConstants.getAlignment(attr);
+			align=StyleConstants.getAlignment(attrs);
 		}
 		leftAlign.setSelected(align==StyleConstants.ALIGN_LEFT);
 		centerAlign.setSelected(align==StyleConstants.ALIGN_CENTER);
 		rightAlign.setSelected(align==StyleConstants.ALIGN_RIGHT);
 		justifyAlign.setSelected(align==StyleConstants.ALIGN_JUSTIFIED);
 		
-		bold.setSelected(StyleConstants.isBold(attr));
-		italic.setSelected(StyleConstants.isItalic(attr));
-		underline.setSelected(StyleConstants.isUnderline(attr));
+		bold.setSelected(StyleConstants.isBold(attrs));
+		italic.setSelected(StyleConstants.isItalic(attrs));
+		underline.setSelected(StyleConstants.isUnderline(attrs));
 		
-		boolean selected=false;
-		HTML.Tag tag = (Tag)attr.getAttribute(StyleConstants.NameAttribute);
-		String classname = (String)attr.getAttribute(HTML.Attribute.CLASS);
+		elements = getParagraphElementIterator(caret.getDot(),caret.getMark());
 		StyleModel styles = (StyleModel)style.getModel();
-		if (tag!=null)
+		element = (Element)elements.next();
+		StyleModel.Style style = styles.getStyle(element);
+		while (elements.hasNext())
 		{
-			for (int i=0; i<styles.getSize(); i++)
+			element=(Element)elements.next();
+			StyleModel.Style nstyle = styles.getStyle(element);
+			if (!style.equals(nstyle))
 			{
-				StyleModel.Style style = (StyleModel.Style)styles.getElementAt(i);
-				if ((tag.equals(style.getTag()))&&(classname==null ? style.getClassName()==null : classname.equals(style.getClassName())))
-				{
-					styles.setSelectedItem(style);
-					selected=true;
-					break;
-				}
+				style=null;
+				break;
 			}
 		}
-		if (!selected)
-		{
-			styles.setSelectedItem(null);
-		}
+		styles.setSelectedItem(style);
 	}
 	
 	private Element findBody(Element element)
@@ -309,7 +325,6 @@ public class EditorUI implements InterfaceListener
 	
 	public void interfaceCreated(InterfaceEvent ev)
 	{
-		ui=ev.getUserInterface();
 		editorKit = new WebEditEditorKit();
 		editorPane.setEditorKit(editorKit);
 		editorKit.setDefaultCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
@@ -321,11 +336,15 @@ public class EditorUI implements InterfaceListener
 		});
 		try
 		{
-			document=(HTMLDocument)editorKit.createDefaultDocument();
+			Request req = new Request(swim,"view",stylePath);
 			stylesheet = new StyleSheet();
+			stylesheet.loadRules(swim.openResourceReader(stylePath),req.encode());
+			editorKit.setStyleSheet(stylesheet);
+			
+			document=(HTMLDocument)editorKit.createDefaultDocument();
 			editorPane.setDocument(document);
 			body=findBody(document.getDefaultRootElement());
-			StringBuffer html = new StringBuffer(swim.getResource(path));
+			StringBuffer html = new StringBuffer(swim.getResource(htmlPath));
 			html.insert(0,"<div id=\"content\" class=\"block\">\n");
 			html.append("</div>\n");
 			document.setInnerHTML(body,html.toString());

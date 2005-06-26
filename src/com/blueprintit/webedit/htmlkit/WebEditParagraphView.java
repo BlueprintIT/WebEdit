@@ -69,7 +69,7 @@ public class WebEditParagraphView extends ParagraphView
 		public void layout(FlowView fv)
 		{
 			super.layout(fv);
-			AttributeSet attr = fv.getElement().getAttributes();
+			AttributeSet attr = fv.getAttributes();
 			float lineSpacing = StyleConstants.getLineSpacing(attr);
 			boolean justifiedAlignment = (StyleConstants.getAlignment(attr) == StyleConstants.ALIGN_JUSTIFIED);
 			if (!(justifiedAlignment || (lineSpacing > 1)))
@@ -194,8 +194,7 @@ public class WebEditParagraphView extends ParagraphView
 			return super.getAlignment(axis);
 		}
 
-		public Shape modelToView(int pos, Shape a, Position.Bias b)
-				throws BadLocationException
+		public Shape modelToView(int pos, Shape a, Position.Bias b) throws BadLocationException
 		{
 			Rectangle r = a.getBounds();
 			View v = getViewAtPosition(pos, r);
@@ -238,14 +237,12 @@ public class WebEditParagraphView extends ParagraphView
 			return offs;
 		}
 
-		protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets,
-				int[] spans)
+		protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans)
 		{
 			baselineLayout(targetSpan, axis, offsets, spans);
 		}
 
-		protected SizeRequirements calculateMinorAxisRequirements(int axis,
-				SizeRequirements r)
+		protected SizeRequirements calculateMinorAxisRequirements(int axis, SizeRequirements r)
 		{
 			return baselineRequirements(axis, r);
 		}
@@ -282,14 +279,12 @@ public class WebEditParagraphView extends ParagraphView
 			return super.getRightInset();
 		}
 
-		public void setInsets(short topInset, short leftInset, short bottomInset,
-				short rightInset)
+		public void setInsets(short topInset, short leftInset, short bottomInset, short rightInset)
 		{
 			super.setInsets(topInset, leftInset, bottomInset, rightInset);
 		}
 
-		protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets,
-				int[] spans)
+		protected void layoutMajorAxis(int targetSpan, int axis, int[] offsets, int[] spans)
 		{
 			super.layoutMajorAxis(targetSpan, axis, offsets, spans);
 			AttributeSet attr = getAttributes();
@@ -450,8 +445,7 @@ public class WebEditParagraphView extends ParagraphView
 		return span;
 	}
 
-	protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets,
-			int[] spans)
+	protected void layoutMinorAxis(int targetSpan, int axis, int[] offsets, int[] spans)
 	{
 		super.layoutMinorAxis(targetSpan, axis, offsets, spans);
 		int firstLineIdent = (int) StyleConstants.getFirstLineIndent(this

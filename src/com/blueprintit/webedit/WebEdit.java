@@ -40,7 +40,8 @@ public class WebEdit extends JApplet
 			String urlbase="http://localhost"+getParameter("swim.base");
 			SwimInterface swim = new SwimInterface(new URL(urlbase));
 			String path=getParameter("html");
-			new UserInterface(new EditorUI(swim,path),this);
+			String style=getParameter("style");
+			new UserInterface(new EditorUI(swim,path,style),this);
 		}
 		catch (Exception e)
 		{

@@ -7,37 +7,79 @@
 package com.blueprintit.webedit;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxModel;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.Element;
+import javax.swing.text.MutableAttributeSet;
+import javax.swing.text.StyleConstants;
 import javax.swing.text.html.HTML;
+
+import org.apache.log4j.Logger;
 
 public class StyleModel extends AbstractListModel implements ComboBoxModel
 {
+	private Logger log = Logger.getLogger(this.getClass());
+
 	private List styles = new ArrayList();
 	private Object selected;
 	
 	public StyleModel()
 	{
-		styles.add(new Style("Heading 1",HTML.Tag.H1,null));
-		styles.add(new Style("Heading 2",HTML.Tag.H2,null));
-		styles.add(new Style("Heading 3",HTML.Tag.H3,null));
-		styles.add(new Style("Heading 4",HTML.Tag.H4,null));
-		styles.add(new Style("Heading 5",HTML.Tag.H5,null));
-		styles.add(new Style("Heading 6",HTML.Tag.H6,null));
+		styles.add(new Style("Title",HTML.Tag.H1,null));
+		styles.add(new Style("Subtitle",HTML.Tag.H2,null));
 		styles.add(new Style("Normal",HTML.Tag.P,null));
 	}
 	
 	public void setSelectedItem(Object anItem)
 	{
-		if ((selected!=anItem)&&(styles.contains(anItem)))
+		if ((selected!=anItem)&&((anItem==null)||(styles.contains(anItem))))
 		{
-			int pos1 = styles.indexOf(selected);
+			int pos1=-1;
+			int pos2=-1;
+			if (selected!=null)
+				pos1 = styles.indexOf(selected);
 			selected=anItem;
-			int pos2 = styles.indexOf(selected);
+			if (selected!=null)
+				pos2 = styles.indexOf(selected);
 			this.fireContentsChanged(this,pos1,pos2);
 		}
+	}
+	
+	public Style getStyle(Element element)
+	{
+		AttributeSet attrs = element.getAttributes();
+		if (attrs!=null)
+		{
+			Object tag = attrs.getAttribute(StyleConstants.NameAttribute);
+			if ((tag!=null)&&(tag instanceof HTML.Tag))
+			{
+				String classname=(String)attrs.getAttribute(HTML.Attribute.CLASS);
+				if (classname!=null)
+				{
+					if (classname.equals("block"))
+					{
+						classname=null;
+					}
+				}
+				Iterator it = styles.iterator();
+				while (it.hasNext())
+				{
+					Style style = (Style)it.next();
+					if (style.getTag().equals(tag))
+					{
+						if ((classname==null)&&(style.getClassName()==null))
+							return style;
+						if ((classname!=null)&&(classname.equals(style.getClassName())))
+							return style;
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	public Object getSelectedItem()
@@ -86,6 +128,15 @@ public class StyleModel extends AbstractListModel implements ComboBoxModel
 		public String toString()
 		{
 			return getName();
+		}
+		
+		public void apply(MutableAttributeSet attr)
+		{
+			attr.addAttribute(StyleConstants.NameAttribute,tag);
+			if (classname!=null)
+			{
+				attr.addAttribute(HTML.Attribute.CLASS,classname);
+			}
 		}
 	}
 }
