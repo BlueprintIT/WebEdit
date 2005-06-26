@@ -8,6 +8,8 @@ package com.blueprintit.webedit;
 
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
+import java.io.IOException;
+import java.io.Writer;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -68,7 +70,25 @@ public class EditorUI implements InterfaceListener
 	public Action saveAction = new AbstractAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
-			log.info(editorPane.getText());
+			StringBuffer text = new StringBuffer(editorPane.getText());
+			int pos = text.indexOf("<body");
+			int lpos = text.indexOf(">",pos);
+			text.delete(0,lpos+1);
+			pos = text.indexOf("</body>");
+			text.delete(pos,text.length());
+			try
+			{
+				log.debug("Opening writer");
+				Writer writer = swim.openResourceWriter(htmlPath,"temp");
+				log.debug("Writing text");
+				writer.write(text.toString());
+				log.debug("Closing");
+				writer.close();
+			}
+			catch (IOException e)
+			{
+				log.error("Could not store",e);
+			}
 		}
 	};
 	
@@ -338,15 +358,15 @@ public class EditorUI implements InterfaceListener
 		{
 			Request req = new Request(swim,"view",stylePath);
 			stylesheet = new StyleSheet();
-			stylesheet.loadRules(swim.openResourceReader(stylePath),req.encode());
+			stylesheet.loadRules(swim.openResourceReader(stylePath,null),req.encode());
 			editorKit.setStyleSheet(stylesheet);
 			
 			document=(HTMLDocument)editorKit.createDefaultDocument();
 			editorPane.setDocument(document);
 			body=findBody(document.getDefaultRootElement());
-			StringBuffer html = new StringBuffer(swim.getResource(htmlPath));
-			html.insert(0,"<div id=\"content\" class=\"block\">\n");
-			html.append("</div>\n");
+			StringBuffer html = new StringBuffer(swim.getResource(htmlPath,"temp"));
+			//html.insert(0,"<div id=\"content\" class=\"block\">\n");
+			//html.append("</div>\n");
 			document.setInnerHTML(body,html.toString());
 		}
 		catch (Exception e)

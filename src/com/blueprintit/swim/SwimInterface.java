@@ -23,6 +23,31 @@ public class SwimInterface
 {
 	private Logger log = Logger.getLogger(this.getClass());
 
+	private class ResourceOutputStream extends OutputStream
+	{
+		private OutputStream out;
+		private HttpURLConnection connection;
+
+		public ResourceOutputStream(HttpURLConnection connection) throws IOException
+		{
+			this.connection=connection;
+			connection.setDoOutput(true);
+			this.out=connection.getOutputStream();
+		}
+
+		public void write(int b) throws IOException
+		{
+			out.write(b);
+		}
+		
+		public void close() throws IOException
+		{
+			out.close();
+			connection.connect();
+			connection.getInputStream().close();
+		}
+	}
+	
 	private URL url;
 	
 	public SwimInterface(URL url)
@@ -35,9 +60,9 @@ public class SwimInterface
 		return url;
 	}
 	
-	public String getResource(String path) throws IOException
+	public String getResource(String path, String version) throws IOException
 	{
-		BufferedReader reader = new BufferedReader(openResourceReader(path));
+		BufferedReader reader = new BufferedReader(openResourceReader(path,version));
 		StringBuffer result = new StringBuffer();
 		String line=reader.readLine();
 		while (line!=null)
@@ -49,42 +74,50 @@ public class SwimInterface
 		return result.toString();
 	}
 	
-	public void setResource(String path, String data) throws IOException
+	public void setResource(String path, String version, String data) throws IOException
 	{
-		Writer writer = openResourceWriter(path);
+		Writer writer = openResourceWriter(path,version);
 		writer.write(data);
 		writer.close();
 	}
 	
-	public Reader openResourceReader(String path) throws IOException
+	public Reader openResourceReader(String path, String version) throws IOException
 	{
-		return new InputStreamReader(openResourceInputStream(path));
+		return new InputStreamReader(openResourceInputStream(path,version));
 	}
 	
-	public Writer openResourceWriter(String path) throws IOException
+	public Writer openResourceWriter(String path, String version) throws IOException
 	{
-		return new OutputStreamWriter(openResourceOutputStream(path));
+		return new OutputStreamWriter(openResourceOutputStream(path,version));
 	}
 	
-	public InputStream openResourceInputStream(String path) throws IOException
+	public InputStream openResourceInputStream(String path, String version) throws IOException
 	{
 		Request request = new Request(this,"view",path);
+		if (version!=null)
+		{
+			request.addParameter("version",version);
+		}
 		return openConnection("GET",request).getInputStream();
 	}
 	
-	public OutputStream openResourceOutputStream(String path) throws IOException
+	public OutputStream openResourceOutputStream(String path, String version) throws IOException
 	{
 		Request request = new Request(this,"view",path);
-		return openConnection("PUT",request).getOutputStream();
+		if (version!=null)
+		{
+			request.addParameter("version",version);
+		}
+		HttpURLConnection connection = openConnection("PUT",request);
+		return new ResourceOutputStream(connection);
 	}
 	
-	private HttpURLConnection openConnection(String method, Request request) throws IOException
+	public HttpURLConnection openConnection(String method, Request request) throws IOException
 	{
 		URL url = request.encode();
 		log.info("Opening connection to "+url.toString());
 		HttpURLConnection connection = (HttpURLConnection)url.openConnection();
 		connection.setRequestMethod(method);
-		connection.connect();
 		return connection;
 	}
 }

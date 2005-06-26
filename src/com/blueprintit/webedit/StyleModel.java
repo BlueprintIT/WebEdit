@@ -18,12 +18,8 @@ import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.html.HTML;
 
-import org.apache.log4j.Logger;
-
 public class StyleModel extends AbstractListModel implements ComboBoxModel
 {
-	private Logger log = Logger.getLogger(this.getClass());
-
 	private List styles = new ArrayList();
 	private Object selected;
 	
@@ -57,13 +53,10 @@ public class StyleModel extends AbstractListModel implements ComboBoxModel
 			Object tag = attrs.getAttribute(StyleConstants.NameAttribute);
 			if ((tag!=null)&&(tag instanceof HTML.Tag))
 			{
-				String classname=(String)attrs.getAttribute(HTML.Attribute.CLASS);
-				if (classname!=null)
+				String classname = null;
+				if (attrs.isDefined(HTML.Attribute.CLASS))
 				{
-					if (classname.equals("block"))
-					{
-						classname=null;
-					}
+					classname=(String)attrs.getAttribute(HTML.Attribute.CLASS);
 				}
 				Iterator it = styles.iterator();
 				while (it.hasNext())
