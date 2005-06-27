@@ -108,6 +108,23 @@ public class UserInterface extends SwingEngine
 		}
 		else
 		{
+			// TODO throws an exception with the latest SwiXML.
+			/*
+			 * java.security.AccessControlException: access denied (java.lang.reflect.ReflectPermission suppressAccessChecks)
+			 *	at java.security.AccessControlContext.checkPermission(Unknown Source)
+			 *	at java.security.AccessController.checkPermission(Unknown Source)
+			 *	at java.lang.SecurityManager.checkPermission(Unknown Source)
+			 *	at java.lang.reflect.AccessibleObject.setAccessible(Unknown Source)
+			 *	at org.swixml.SwingEngine.mapMembers(Unknown Source)
+			 *	at org.swixml.SwingEngine.mapMembers(Unknown Source)
+			 *	at org.swixml.SwingEngine.insert(Unknown Source)
+			 *	at org.swixml.SwingEngine.insert(Unknown Source)
+			 *	at com.blueprintit.xui.UserInterface.buildUI(UserInterface.java:111)
+			 *	at com.blueprintit.xui.UserInterface.<init>(UserInterface.java:62)
+			 *	at com.blueprintit.webedit.WebEdit.init(WebEdit.java:44)
+			 *	at sun.applet.AppletPanel.run(Unknown Source)
+			 *	at java.lang.Thread.run(Unknown Source)
+			 */
 			this.insert(getXUIReader(),container);
 		}
 		fireInterfaceCreated();

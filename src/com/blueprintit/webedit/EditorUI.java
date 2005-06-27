@@ -48,23 +48,25 @@ public class EditorUI implements InterfaceListener
 	private SwimInterface swim;
 	private String htmlPath;
 	private String stylePath;
-	
-	private JEditorPane editorPane;
+
 	private HTMLEditorKit editorKit;
 	private HTMLDocument document;
 	private Element body;
 	private StyleSheet stylesheet;
-	private JComboBox style;
+
+	public JComboBox style;
 	
-	private JToggleButton leftAlign;
-	private JToggleButton rightAlign;
-	private JToggleButton centerAlign;
-	private JToggleButton justifyAlign;
+	public JToggleButton leftAlign;
+	public JToggleButton rightAlign;
+	public JToggleButton centerAlign;
+	public JToggleButton justifyAlign;
 	
-	private JToggleButton bold;
-	private JToggleButton italic;
-	private JToggleButton underline;
-	
+	public JToggleButton bold;
+	public JToggleButton italic;
+	public JToggleButton underline;
+
+	public JEditorPane editorPane;
+
 	private String resources = "com/blueprintit/webedit";
 	
 	public Action saveAction = new AbstractAction() {
