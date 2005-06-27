@@ -81,7 +81,9 @@ public class EditorUI implements InterfaceListener
 			try
 			{
 				log.debug("Opening writer");
-				Writer writer = swim.openResourceWriter(htmlPath,"temp");
+				Request request = swim.getRequest(htmlPath);
+				request.addParameter("version","temp");
+				Writer writer = request.openWriter();
 				log.debug("Writing text");
 				writer.write(text.toString());
 				log.debug("Closing");
@@ -375,11 +377,12 @@ public class EditorUI implements InterfaceListener
 		{
 			Request req = new Request(swim,"view",stylePath);
 			stylesheet = new StyleSheet();
-			stylesheet.loadRules(swim.openResourceReader(stylePath,null),req.encode());
-			editorKit.setStyleSheet(stylesheet);
+			stylesheet.loadRules(req.openReader(),req.encode());
 			
 			document=(HTMLDocument)editorKit.createDefaultDocument();
+			document.getStyleSheet().addStyleSheet(stylesheet);
 			editorPane.setDocument(document);
+			
 			body=findBody(document.getDefaultRootElement());
 			StringBuffer html = new StringBuffer(swim.getResource(htmlPath,"temp"));
 			//html.insert(0,"<div id=\"content\" class=\"block\">\n");

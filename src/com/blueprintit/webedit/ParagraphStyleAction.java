@@ -28,8 +28,11 @@ public class ParagraphStyleAction extends HTMLTextAction
 		JComboBox combo = (JComboBox)ev.getSource();
 		StyleModel model = (StyleModel)combo.getModel();
 		StyleModel.Style style = (StyleModel.Style)model.getSelectedItem();
-		MutableAttributeSet attr = new SimpleAttributeSet();
-		style.apply(attr);
-		setParagraphAttributes(editor,attr,false);
+		if (style!=null)
+		{
+			MutableAttributeSet attr = new SimpleAttributeSet();
+			style.apply(attr);
+			setParagraphAttributes(editor,attr,false);
+		}
 	}
 }
