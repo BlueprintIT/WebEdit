@@ -35,7 +35,7 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import org.apache.log4j.Logger;
 
-import com.blueprintit.webedit.htmlkit.WebEditEditorKit;
+import com.blueprintit.htmlkit.WebEditEditorKit;
 import com.blueprintit.xui.InterfaceEvent;
 import com.blueprintit.xui.InterfaceListener;
 import com.blueprintit.swim.Request;
@@ -90,6 +90,21 @@ public class EditorUI implements InterfaceListener
 			catch (IOException e)
 			{
 				log.error("Could not store",e);
+			}
+		}
+	};
+	
+	public Action linkAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent ev)
+		{
+			log.info("Attempting to load page browser");
+			try
+			{
+				swim.getPageBrowser().choosePage();
+			}
+			catch (Exception e)
+			{
+				log.warn("Error opening page browser",e);
 			}
 		}
 	};

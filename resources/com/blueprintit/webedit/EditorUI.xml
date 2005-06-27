@@ -11,6 +11,7 @@
 			<label>General</label>
 			<separator/>
 			<button action="saveAction" focusable="false">Save</button>
+			<button action="linkAction" focusable="false">Link</button>
 		</toolbar>
 		<toolbar rollover="true" floatable="false">
 			<label>Formatting</label>
