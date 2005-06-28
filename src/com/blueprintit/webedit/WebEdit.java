@@ -24,19 +24,19 @@ public class WebEdit extends JApplet
 	static
 	{
 		BasicConfigurator.configure();
-		try
-		{
-			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-		}
-		catch (Exception e)
-		{
-		}
 	}
 	
 	public void init()
 	{
 		try
 		{
+			try
+			{
+				UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+			}
+			catch (Exception e)
+			{
+			}
 			String urlbase="http://localhost"+getParameter("swim.base");
 			SwimInterface swim = new SwimInterface(new URL(urlbase));
 			String path=getParameter("html");
