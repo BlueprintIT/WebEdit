@@ -10,9 +10,9 @@
 		<toolbar rollover="true" floatable="false">
 			<label>General</label>
 			<separator/>
-			<button action="cancelAction" focusable="false">Cancel</button>
-			<button action="saveAction" focusable="false">Save Working Version</button>
-			<button action="commitAction" focusable="false">Save &amp; Commit</button>
+			<button action="cancelAction" focusable="false" toolTipText="Cancel editing and delete the working copy.">Cancel</button>
+			<button action="saveAction" focusable="false" toolTipText="Save the current edits to the working version.">Save Working Version</button>
+			<button action="commitAction" focusable="false" toolTipText="Save the current edits and commit this as a new version.">Save &amp; Commit</button>
 		</toolbar>
 		<toolbar rollover="true" floatable="false">
 			<label>Formatting</label>
