@@ -6,10 +6,12 @@
  */
 package com.blueprintit.webedit;
 
+import java.applet.AppletContext;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.Writer;
+import java.net.URL;
 import java.util.Iterator;
 import java.util.LinkedList;
 
@@ -69,30 +71,50 @@ public class EditorUI implements InterfaceListener
 
 	private String resources = "com/blueprintit/webedit";
 	
+	private void saveWorking()
+	{
+		StringBuffer text = new StringBuffer(editorPane.getText());
+		int pos = text.indexOf("<body");
+		int lpos = text.indexOf(">",pos);
+		text.delete(0,lpos+1);
+		pos = text.indexOf("</body>");
+		text.delete(pos,text.length());
+		try
+		{
+			log.debug("Opening writer");
+			Request request = swim.getRequest(htmlPath);
+			request.addParameter("version","temp");
+			Writer writer = request.openWriter();
+			log.debug("Writing text");
+			writer.write(text.toString());
+			log.debug("Closing");
+			writer.close();
+		}
+		catch (IOException e)
+		{
+			log.error("Could not store",e);
+		}
+	}
+	
+	public Action commitAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent ev)
+		{
+			saveWorking();
+			context.showDocument(commitURL);
+		}
+	};
+	
 	public Action saveAction = new AbstractAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
-			StringBuffer text = new StringBuffer(editorPane.getText());
-			int pos = text.indexOf("<body");
-			int lpos = text.indexOf(">",pos);
-			text.delete(0,lpos+1);
-			pos = text.indexOf("</body>");
-			text.delete(pos,text.length());
-			try
-			{
-				log.debug("Opening writer");
-				Request request = swim.getRequest(htmlPath);
-				request.addParameter("version","temp");
-				Writer writer = request.openWriter();
-				log.debug("Writing text");
-				writer.write(text.toString());
-				log.debug("Closing");
-				writer.close();
-			}
-			catch (IOException e)
-			{
-				log.error("Could not store",e);
-			}
+			saveWorking();
+		}
+	};
+	
+	public Action cancelAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent ev)
+		{
+			context.showDocument(cancelURL);
 		}
 	};
 	
@@ -177,12 +199,21 @@ public class EditorUI implements InterfaceListener
 			updateToolbar();
 		}
 	};
+
+	private URL cancelURL;
+
+	private URL commitURL;
+
+	private AppletContext context;
 	
-	public EditorUI(SwimInterface swim, String path, String style)
+	public EditorUI(AppletContext context, SwimInterface swim, String path, String style, URL cancel, URL commit)
 	{
 		this.swim=swim;
 		this.htmlPath=path;
 		this.stylePath=style;
+		this.cancelURL=cancel;
+		this.commitURL=commit;
+		this.context=context;
 		
 		setupToolbarButton(leftAlignAction,"","Left Align","icons/left-align.gif");
 		setupToolbarButton(centerAlignAction,"","Center Align","icons/center-align.gif");

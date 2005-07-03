@@ -10,8 +10,9 @@
 		<toolbar rollover="true" floatable="false">
 			<label>General</label>
 			<separator/>
-			<button action="saveAction" focusable="false">Save</button>
-			<button action="linkAction" focusable="false">Link</button>
+			<button action="cancelAction" focusable="false">Cancel</button>
+			<button action="saveAction" focusable="false">Save Working Version</button>
+			<button action="commitAction" focusable="false">Save &amp; Commit</button>
 		</toolbar>
 		<toolbar rollover="true" floatable="false">
 			<label>Formatting</label>
@@ -28,5 +29,7 @@
 			<togglebutton id="underline" action="underlineAction" focusable="false"/>
 		</toolbar>
 	</panel>
-	<editorpane id="editorPane" contentType="text/html"/>
+	<scrollpane>
+		<editorpane id="editorPane" contentType="text/html"/>
+	</scrollpane>
 </applet>

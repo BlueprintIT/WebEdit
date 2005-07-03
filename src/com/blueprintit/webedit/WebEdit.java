@@ -41,7 +41,9 @@ public class WebEdit extends JApplet
 			SwimInterface swim = new SwimInterface(new URL(urlbase));
 			String path=getParameter("html");
 			String style=getParameter("style");
-			new UserInterface(new EditorUI(swim,path,style),this);
+			URL cancel = new URL(getParameter("cancel"));
+			URL commit = new URL(getParameter("commit"));
+			new UserInterface(new EditorUI(getAppletContext(),swim,path,style,cancel,commit),this);
 		}
 		catch (Exception e)
 		{
