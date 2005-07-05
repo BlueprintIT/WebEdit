@@ -37,6 +37,7 @@ import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
 import org.apache.log4j.Logger;
 
+import com.blueprintit.errors.ErrorReporter;
 import com.blueprintit.htmlkit.WebEditEditorKit;
 import com.blueprintit.xui.InterfaceEvent;
 import com.blueprintit.xui.InterfaceListener;
@@ -93,6 +94,9 @@ public class EditorUI implements InterfaceListener
 		catch (IOException e)
 		{
 			log.error("Could not store",e);
+			ErrorReporter.sendErrorReport(
+					"Unable to save","The file could not be saved, probably because the server is currently unavailable.",
+					"Swim","WebEdit","Could not save",e);
 		}
 	}
 	
@@ -129,6 +133,9 @@ public class EditorUI implements InterfaceListener
 			catch (Exception e)
 			{
 				log.warn("Error opening page browser",e);
+				ErrorReporter.sendErrorReport(
+						"Error loading page browser","Due to an unknown reason, the page browser could not be loaded.",
+						"Swim","WebEdit","Could not load page browser",e);
 			}
 		}
 	};
@@ -424,6 +431,9 @@ public class EditorUI implements InterfaceListener
 		{
 			log.error(e);
 			e.printStackTrace();
+			ErrorReporter.sendErrorReport(
+					"Error loading content","The text to be edited could not be loaded. The server could be down or misconfigured.",
+					"Swim","WebEdit","Could not load content",e);
 		}
 		//updateToolbar();
 	}
