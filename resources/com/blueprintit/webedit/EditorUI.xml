@@ -6,8 +6,21 @@
 -->
 
 <applet layout="BorderLayout">
-	<panel constraints="BorderLayout.NORTH" layout="GridLayout(2,1)">
+	<panel constraints="BorderLayout.NORTH" layout="GridBagLayout">
+		<panel layout="GridBagLayout">
+			<gridbagconstraints gridx="0" gridy="0" weightx="1" fill="GridBagConstraints.HORIZONTAL"/>
+			<label font="Arial-BOLD-14" foreground="0000FF" icon="com/blueprintit/webedit/icons/icon.gif" text="Content Editor">
+				<gridbagconstraints gridx="0" gridy="0"/>
+			</label>
+			<panel layout="FlowLayout">
+				<gridbagconstraints gridx="1" gridy="0" weightx="1"/>
+				<label icon="com/blueprintit/webedit/icons/swimlogo.gif"/>
+				<label text="by"/>
+				<label icon="com/blueprintit/webedit/icons/bpitlogo.gif"/>
+			</panel>
+		</panel>
 		<toolbar rollover="true" floatable="false">
+			<gridbagconstraints gridx="0" gridy="1" fill="GridBagConstraints.HORIZONTAL"/>
 			<label>General</label>
 			<separator/>
 			<button action="cancelAction" focusable="false" toolTipText="Cancel editing and delete the working copy.">Cancel</button>
@@ -15,6 +28,7 @@
 			<button action="commitAction" focusable="false" toolTipText="Save the current edits and commit this as a new version.">Save &amp; Commit</button>
 		</toolbar>
 		<toolbar rollover="true" floatable="false">
+			<gridbagconstraints gridx="0" gridy="2" fill="GridBagConstraints.HORIZONTAL"/>
 			<label>Formatting</label>
 			<separator/>
 			<combobox id="style" initclass="com.blueprintit.webedit.StyleModel" focusable="false" action="applyStyleAction"/>
