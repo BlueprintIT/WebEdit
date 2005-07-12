@@ -33,6 +33,12 @@
 			<separator/>
 			<combobox id="style" initclass="com.blueprintit.webedit.StyleModel" focusable="false" action="applyStyleAction"/>
 			<separator/>
+			<button id="list" action="listAction" focusable="false" text="List"/>
+			<separator/>
+			<button id="cut" action="cutAction" focusable="false"/>
+			<button id="copy" action="copyAction" focusable="false"/>
+			<button id="paste" action="pasteAction" focusable="false"/>
+			<separator/>
 			<togglebutton id="leftAlign" action="leftAlignAction" focusable="false"/>
 			<togglebutton id="centerAlign" action="centerAlignAction" focusable="false"/>
 			<togglebutton id="rightAlign" action="rightAlignAction" focusable="false"/>

@@ -19,6 +19,7 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
 import javax.swing.JToggleButton;
@@ -27,6 +28,7 @@ import javax.swing.event.CaretListener;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.Caret;
 import javax.swing.text.Element;
+import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -58,6 +60,10 @@ public class EditorUI implements InterfaceListener
 	private StyleSheet stylesheet;
 
 	public JComboBox style;
+	
+	public JButton cut;
+	public JButton copy;
+	public JButton paste;
 	
 	public JToggleButton leftAlign;
 	public JToggleButton rightAlign;
@@ -140,6 +146,28 @@ public class EditorUI implements InterfaceListener
 		}
 	};
 	
+	public Action listAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent ev)
+		{
+			Caret caret = editorPane.getCaret();
+			Element el = document.getParagraphElement(caret.getDot());
+			HTML.Tag tag = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
+			if (tag==HTML.Tag.IMPLIED)
+			{
+				el=el.getParentElement();
+				tag = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
+			}
+			if (tag==HTML.Tag.LI)
+			{
+				
+			}
+			else
+			{
+				
+			}
+		}
+	};
+	
 	public Action applyStyleAction = new ParagraphStyleAction()
 	{
 		public void actionPerformed(ActionEvent ev)
@@ -207,6 +235,10 @@ public class EditorUI implements InterfaceListener
 		}
 	};
 
+	public Action cutAction = new DefaultEditorKit.CutAction();
+	public Action copyAction = new DefaultEditorKit.CopyAction();
+	public Action pasteAction = new DefaultEditorKit.PasteAction();
+	
 	private URL cancelURL;
 
 	private URL commitURL;
@@ -226,6 +258,10 @@ public class EditorUI implements InterfaceListener
 		setupToolbarButton(centerAlignAction,"","Center Align","icons/center-align.gif");
 		setupToolbarButton(rightAlignAction,"","Right Align","icons/right-align.gif");
 		setupToolbarButton(justifiedAlignAction,"","Justify","icons/justified-align.gif");
+
+		setupToolbarButton(cutAction,"","Cut","icons/cut.gif");
+		setupToolbarButton(copyAction,"","Copy","icons/copy.gif");
+		setupToolbarButton(pasteAction,"","Paste","icons/paste.gif");
 
 		setupToolbarButton(boldAction,"","Bold","icons/bold.gif");
 		setupToolbarButton(italicAction,"","Italic","icons/italic.gif");
@@ -348,6 +384,10 @@ public class EditorUI implements InterfaceListener
 			matchElementAttributes(element,attrs,false);
 		}
 		
+		boolean selection = (caret.getDot()!=caret.getMark());
+		cut.setEnabled(selection);
+		copy.setEnabled(selection);
+		
 		int align = -1;
 		if (attrs.isDefined(StyleConstants.Alignment))
 		{
@@ -411,6 +451,21 @@ public class EditorUI implements InterfaceListener
 				updateToolbar();
 			}
 		});
+		
+		SecurityManager sm = System.getSecurityManager();
+		if (sm != null)
+		{
+		  try
+		  {
+		  	sm.checkSystemClipboardAccess();
+		  } 
+		  catch (SecurityException se)
+		  {
+				log.error("Cannot access system clipboard",se);
+				se.printStackTrace();
+		  }
+		}
+
 		try
 		{
 			Request req = new Request(swim,"view",stylePath);
