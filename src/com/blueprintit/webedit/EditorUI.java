@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -26,6 +25,7 @@ import javax.swing.JToggleButton;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.Element;
 import javax.swing.text.DefaultEditorKit;
@@ -33,13 +33,15 @@ import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledEditorKit;
+import javax.swing.text.StyledEditorKit.StyledTextAction;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.StyleSheet;
-import javax.swing.text.html.HTMLDocument;
 import javax.swing.text.html.HTMLEditorKit;
+
 import org.apache.log4j.Logger;
 
 import com.blueprintit.errors.ErrorReporter;
+import com.blueprintit.htmlkit.WebEditDocument;
 import com.blueprintit.htmlkit.WebEditEditorKit;
 import com.blueprintit.xui.InterfaceEvent;
 import com.blueprintit.xui.InterfaceListener;
@@ -49,13 +51,39 @@ import com.blueprintit.swim.SwimInterface;
 public class EditorUI implements InterfaceListener
 {
 	private Logger log = Logger.getLogger(this.getClass());
+	private transient boolean updating = false;
+	
+	class ParagraphStyleAction extends StyledTextAction
+	{
+		public ParagraphStyleAction()
+		{
+			super("paragraph-style");
+		}
+		
+		public void actionPerformed(ActionEvent ev)
+		{
+			if (!updating)
+			{
+				JEditorPane editor = getEditor(ev);
+				JComboBox combo = (JComboBox)ev.getSource();
+				StyleModel model = (StyleModel)combo.getModel();
+				StyleModel.Style style = (StyleModel.Style)model.getSelectedItem();
+				if (style!=null)
+				{
+					MutableAttributeSet attr = new SimpleAttributeSet();
+					style.apply(attr);
+					this.setParagraphAttributes(editor,attr,true);
+			}
+			}
+		}
+	}
 
 	private SwimInterface swim;
 	private String htmlPath;
 	private String stylePath;
 
 	private HTMLEditorKit editorKit;
-	private HTMLDocument document;
+	private WebEditDocument document;
 	private Element body;
 	private StyleSheet stylesheet;
 
@@ -121,6 +149,13 @@ public class EditorUI implements InterfaceListener
 		}
 	};
 	
+	public Action dumpAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent ev)
+		{
+			System.out.println(editorPane.getText());
+		}
+	};
+	
 	public Action cancelAction = new AbstractAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
@@ -146,24 +181,94 @@ public class EditorUI implements InterfaceListener
 		}
 	};
 	
+	public Action testAction = new DefaultEditorKit.InsertBreakAction();
+	
 	public Action listAction = new AbstractAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
 			Caret caret = editorPane.getCaret();
-			Element el = document.getParagraphElement(caret.getDot());
-			HTML.Tag tag = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
-			if (tag==HTML.Tag.IMPLIED)
+			int start = caret.getDot();
+			int end = caret.getMark();
+			if (end<start)
 			{
-				el=el.getParentElement();
-				tag = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
+				int temp = end;
+				end=start;
+				start=temp;
 			}
-			if (tag==HTML.Tag.LI)
+			StringBuffer list = new StringBuffer();
+			Iterator it = document.getParagraphElementIterator(caret.getDot(),caret.getMark());
+			Element el = (Element)it.next();
+			start=el.getStartOffset();
+			HTML.Tag parent;
+			HTML.Tag type = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
+			if (type==HTML.Tag.LI)
 			{
-				
+				type=HTML.Tag.P;
+				parent=type;
 			}
 			else
 			{
-				
+				list.append("<ul>\n");
+				type=HTML.Tag.LI;
+				parent=HTML.Tag.UL;
+			}
+			do
+			{
+				try
+				{
+					String paragraph = document.getText(el.getStartOffset(),el.getEndOffset()-el.getStartOffset());
+					list.append("<"+type.toString()+">");
+					list.append(paragraph.trim());
+					list.append("</"+type.toString()+">\n");
+				}
+				catch (BadLocationException e)
+				{
+					log.error(e);
+				}
+				if (it.hasNext())
+					el = (Element)it.next();
+			} while  (it.hasNext());
+			end=el.getEndOffset();
+			if (type==HTML.Tag.LI)
+			{
+				list.append("</ul>");
+			}
+			try
+			{
+				document.remove(start,end-start);
+				el = document.getCharacterElement(start);
+				if ((el.getStartOffset()==start)&&(start>0))
+				{
+					el=document.getCharacterElement(start-1);
+				}
+				HTML.Tag tag = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
+				int pop=0;
+				while ((tag!=HTML.Tag.BODY)&&((parent==HTML.Tag.P)||(tag!=parent)))
+				{
+					log.info(tag);
+					if (tag!=HTML.Tag.CONTENT)
+						pop++; 
+					el=el.getParentElement();
+					tag = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
+				}
+				if (tag!=HTML.Tag.BODY)
+				{
+					parent=type;
+				}
+				try
+				{
+					editorKit.insertHTML(document,start,list.toString(),pop,0,parent);
+				}
+				catch (IOException e)
+				{
+					log.error(e);
+				}
+				editorPane.setSelectionStart(start);
+				editorPane.setSelectionEnd(start);
+			}
+			catch (BadLocationException e)
+			{
+				log.error(e);
 			}
 		}
 	};
@@ -177,7 +282,7 @@ public class EditorUI implements InterfaceListener
 		}
 	};
 
-	public Action leftAlignAction = new ParagraphAlignAction(StyleConstants.ALIGN_LEFT)
+	public Action leftAlignAction = new StyledEditorKit.AlignmentAction("Align Left",StyleConstants.ALIGN_LEFT)
 	{
 		public void actionPerformed(ActionEvent ev)
 		{
@@ -185,7 +290,7 @@ public class EditorUI implements InterfaceListener
 			updateToolbar();
 		}
 	};
-	public Action centerAlignAction = new ParagraphAlignAction(StyleConstants.ALIGN_CENTER)
+	public Action centerAlignAction = new StyledEditorKit.AlignmentAction("Align Center",StyleConstants.ALIGN_CENTER)
 	{
 		public void actionPerformed(ActionEvent ev)
 		{
@@ -193,7 +298,7 @@ public class EditorUI implements InterfaceListener
 			updateToolbar();
 		}
 	};
-	public Action rightAlignAction = new ParagraphAlignAction(StyleConstants.ALIGN_RIGHT)
+	public Action rightAlignAction = new StyledEditorKit.AlignmentAction("Align Right",StyleConstants.ALIGN_RIGHT)
 	{
 		public void actionPerformed(ActionEvent ev)
 		{
@@ -201,7 +306,7 @@ public class EditorUI implements InterfaceListener
 			updateToolbar();
 		}
 	};
-	public Action justifiedAlignAction = new ParagraphAlignAction(StyleConstants.ALIGN_JUSTIFIED)
+	public Action justifiedAlignAction = new StyledEditorKit.AlignmentAction("Align Justified",StyleConstants.ALIGN_JUSTIFIED)
 	{
 		public void actionPerformed(ActionEvent ev)
 		{
@@ -276,46 +381,6 @@ public class EditorUI implements InterfaceListener
 		action.putValue(Action.NAME,name);
 	}
 	
-	private Iterator getCharacterElementIterator(int start, int end)
-	{
-		if (end<start)
-		{
-			int temp = start;
-			start=end;
-			end=temp;
-		}
-		LinkedList elements = new LinkedList();
-		Element element = document.getCharacterElement(start);
-		elements.add(element);
-		while (element.getEndOffset()<end)
-		{
-			int pos=element.getEndOffset();
-			element=document.getCharacterElement(pos);
-			elements.add(element);
-		}
-		return elements.iterator();
-	}
-	
-	private Iterator getParagraphElementIterator(int start, int end)
-	{
-		if (end<start)
-		{
-			int temp = start;
-			start=end;
-			end=temp;
-		}
-		LinkedList elements = new LinkedList();
-		Element element = document.getParagraphElement(start);
-		elements.add(element);
-		while (element.getEndOffset()<end)
-		{
-			int pos=element.getEndOffset();
-			element=document.getParagraphElement(pos);
-			elements.add(element);
-		}
-		return elements.iterator();
-	}
-	
 	private Object findAttribute(Element element, Object attribute)
 	{
 		AttributeSet attrs = element.getAttributes();
@@ -372,10 +437,11 @@ public class EditorUI implements InterfaceListener
 	
 	private void updateToolbar()
 	{
+		updating=true;
 		Caret caret = editorPane.getCaret();
 		
 		MutableAttributeSet attrs = new SimpleAttributeSet();
-		Iterator elements = getCharacterElementIterator(caret.getDot(),caret.getMark());
+		Iterator elements = document.getCharacterElementIterator(caret.getDot(),caret.getMark());
 		Element element = (Element)elements.next();
 		matchElementAttributes(element,attrs,true);
 		while (elements.hasNext())
@@ -402,7 +468,7 @@ public class EditorUI implements InterfaceListener
 		italic.setSelected(StyleConstants.isItalic(attrs));
 		underline.setSelected(StyleConstants.isUnderline(attrs));
 		
-		elements = getParagraphElementIterator(caret.getDot(),caret.getMark());
+		elements = document.getParagraphElementIterator(caret.getDot(),caret.getMark());
 		StyleModel styles = (StyleModel)style.getModel();
 		element = (Element)elements.next();
 		StyleModel.Style style = styles.getStyle(element);
@@ -417,6 +483,7 @@ public class EditorUI implements InterfaceListener
 			}
 		}
 		styles.setSelectedItem(style);
+		updating=false;
 	}
 	
 	private Element findBody(Element element)
@@ -452,27 +519,13 @@ public class EditorUI implements InterfaceListener
 			}
 		});
 		
-		SecurityManager sm = System.getSecurityManager();
-		if (sm != null)
-		{
-		  try
-		  {
-		  	sm.checkSystemClipboardAccess();
-		  } 
-		  catch (SecurityException se)
-		  {
-				log.error("Cannot access system clipboard",se);
-				se.printStackTrace();
-		  }
-		}
-
 		try
 		{
 			Request req = new Request(swim,"view",stylePath);
 			stylesheet = new StyleSheet();
 			stylesheet.loadRules(req.openReader(),req.encode());
 			
-			document=(HTMLDocument)editorKit.createDefaultDocument();
+			document=(WebEditDocument)editorKit.createDefaultDocument();
 			document.getStyleSheet().addStyleSheet(stylesheet);
 			editorPane.setDocument(document);
 			

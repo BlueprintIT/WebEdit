@@ -49,7 +49,7 @@ public class WebEdit extends JApplet
 				URL commit = new URL(getParameter("commit"));
 				try
 				{
-				new UserInterface(new EditorUI(getAppletContext(),swim,path,style,cancel,commit),this);
+					new UserInterface(new EditorUI(getAppletContext(),swim,path,style,cancel,commit),this);
 				}
 				catch (Exception e)
 				{

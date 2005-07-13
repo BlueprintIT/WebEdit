@@ -27,6 +27,7 @@ public class StyleModel extends AbstractListModel implements ComboBoxModel
 	{
 		styles.add(new Style("Title",HTML.Tag.H1,null));
 		styles.add(new Style("Subtitle",HTML.Tag.H2,null));
+		styles.add(new Style("List",HTML.Tag.LI,null));
 		styles.add(new Style("Normal",HTML.Tag.P,null));
 	}
 	

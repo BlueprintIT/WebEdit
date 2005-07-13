@@ -26,6 +26,7 @@
 			<button action="cancelAction" focusable="false" toolTipText="Cancel editing and delete the working copy.">Cancel</button>
 			<button action="saveAction" focusable="false" toolTipText="Save the current edits to the working version.">Save Working Version</button>
 			<button action="commitAction" focusable="false" toolTipText="Save the current edits and commit this as a new version.">Save &amp; Commit</button>
+			<button action="dumpAction" focusable="false">Dump</button>
 		</toolbar>
 		<toolbar rollover="true" floatable="false">
 			<gridbagconstraints gridx="0" gridy="2" fill="GridBagConstraints.HORIZONTAL"/>
@@ -34,6 +35,7 @@
 			<combobox id="style" initclass="com.blueprintit.webedit.StyleModel" focusable="false" action="applyStyleAction"/>
 			<separator/>
 			<button id="list" action="listAction" focusable="false" text="List"/>
+			<button id="test" action="testAction" focusable="false" text="Test"/>
 			<separator/>
 			<button id="cut" action="cutAction" focusable="false"/>
 			<button id="copy" action="copyAction" focusable="false"/>
