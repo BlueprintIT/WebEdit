@@ -12,6 +12,7 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
+import java.util.Enumeration;
 import java.util.Iterator;
 
 import javax.swing.AbstractAction;
@@ -25,7 +26,6 @@ import javax.swing.JToggleButton;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
 import javax.swing.text.AttributeSet;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Caret;
 import javax.swing.text.Element;
 import javax.swing.text.DefaultEditorKit;
@@ -183,93 +183,19 @@ public class EditorUI implements InterfaceListener
 	
 	public Action testAction = new DefaultEditorKit.InsertBreakAction();
 	
-	public Action listAction = new AbstractAction() {
+	public Action orderedListAction = new WebEditEditorKit.ToggleOrderedListAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
-			Caret caret = editorPane.getCaret();
-			int start = caret.getDot();
-			int end = caret.getMark();
-			if (end<start)
-			{
-				int temp = end;
-				end=start;
-				start=temp;
-			}
-			StringBuffer list = new StringBuffer();
-			Iterator it = document.getParagraphElementIterator(caret.getDot(),caret.getMark());
-			Element el = (Element)it.next();
-			start=el.getStartOffset();
-			HTML.Tag parent;
-			HTML.Tag type = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
-			if (type==HTML.Tag.LI)
-			{
-				type=HTML.Tag.P;
-				parent=type;
-			}
-			else
-			{
-				list.append("<ul>\n");
-				type=HTML.Tag.LI;
-				parent=HTML.Tag.UL;
-			}
-			do
-			{
-				try
-				{
-					String paragraph = document.getText(el.getStartOffset(),el.getEndOffset()-el.getStartOffset());
-					list.append("<"+type.toString()+">");
-					list.append(paragraph.trim());
-					list.append("</"+type.toString()+">\n");
-				}
-				catch (BadLocationException e)
-				{
-					log.error(e);
-				}
-				if (it.hasNext())
-					el = (Element)it.next();
-			} while  (it.hasNext());
-			end=el.getEndOffset();
-			if (type==HTML.Tag.LI)
-			{
-				list.append("</ul>");
-			}
-			try
-			{
-				document.remove(start,end-start);
-				el = document.getCharacterElement(start);
-				if ((el.getStartOffset()==start)&&(start>0))
-				{
-					el=document.getCharacterElement(start-1);
-				}
-				HTML.Tag tag = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
-				int pop=0;
-				while ((tag!=HTML.Tag.BODY)&&((parent==HTML.Tag.P)||(tag!=parent)))
-				{
-					log.info(tag);
-					if (tag!=HTML.Tag.CONTENT)
-						pop++; 
-					el=el.getParentElement();
-					tag = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
-				}
-				if (tag!=HTML.Tag.BODY)
-				{
-					parent=type;
-				}
-				try
-				{
-					editorKit.insertHTML(document,start,list.toString(),pop,0,parent);
-				}
-				catch (IOException e)
-				{
-					log.error(e);
-				}
-				editorPane.setSelectionStart(start);
-				editorPane.setSelectionEnd(start);
-			}
-			catch (BadLocationException e)
-			{
-				log.error(e);
-			}
+			super.actionPerformed(ev);
+			updateToolbar();
+		}
+	};
+	
+	public Action unorderedListAction = new WebEditEditorKit.ToggleUnorderedListAction() {
+		public void actionPerformed(ActionEvent ev)
+		{
+			super.actionPerformed(ev);
+			updateToolbar();
 		}
 	};
 	
@@ -367,6 +293,9 @@ public class EditorUI implements InterfaceListener
 		setupToolbarButton(cutAction,"","Cut","icons/cut.gif");
 		setupToolbarButton(copyAction,"","Copy","icons/copy.gif");
 		setupToolbarButton(pasteAction,"","Paste","icons/paste.gif");
+
+		setupToolbarButton(orderedListAction,"","Ordered List","icons/ol.gif");
+		setupToolbarButton(unorderedListAction,"","Unordered List","icons/ul.gif");
 
 		setupToolbarButton(boldAction,"","Bold","icons/bold.gif");
 		setupToolbarButton(italicAction,"","Italic","icons/italic.gif");
@@ -515,6 +444,28 @@ public class EditorUI implements InterfaceListener
 		editorPane.addCaretListener(new CaretListener() {
 			public void caretUpdate(CaretEvent e)
 			{
+				/*int offset = e.getDot();
+				System.out.println("Caret moved to "+offset);
+				Element el = document.getCharacterElement(offset);
+				while (el!=null)
+				{
+					System.out.println("Element "+el.getStartOffset()+" "+el.getEndOffset()+" ("+el.getClass().toString()+")");
+					HTML.Tag tag = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
+					if (tag!=null)
+					{
+						System.out.println("Element is tag "+tag.toString());
+					}
+					Enumeration en = el.getAttributes().getAttributeNames();
+					while (en.hasMoreElements())
+					{
+						Object name = en.nextElement();
+						if (name!=StyleConstants.NameAttribute)
+						{
+							System.out.println(name+" = "+el.getAttributes().getAttribute(name));
+						}
+					}
+					el=el.getParentElement();
+				}*/
 				updateToolbar();
 			}
 		});

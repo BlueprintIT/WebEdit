@@ -34,8 +34,8 @@
 			<separator/>
 			<combobox id="style" initclass="com.blueprintit.webedit.StyleModel" focusable="false" action="applyStyleAction"/>
 			<separator/>
-			<button id="list" action="listAction" focusable="false" text="List"/>
-			<button id="test" action="testAction" focusable="false" text="Test"/>
+			<button id="olist" action="orderedListAction" focusable="false"/>
+			<button id="ulist" action="unorderedListAction" focusable="false"/>
 			<separator/>
 			<button id="cut" action="cutAction" focusable="false"/>
 			<button id="copy" action="copyAction" focusable="false"/>
