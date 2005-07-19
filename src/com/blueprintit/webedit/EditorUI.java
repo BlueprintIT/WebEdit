@@ -73,13 +73,12 @@ public class EditorUI implements InterfaceListener
 					MutableAttributeSet attr = new SimpleAttributeSet();
 					style.apply(attr);
 					this.setParagraphAttributes(editor,attr,true);
-			}
+				}
 			}
 		}
 	}
 
 	private SwimInterface swim;
-	private String resource;
 	private String attachments;
 	private String htmlPath;
 	private String stylePath;
@@ -175,20 +174,81 @@ public class EditorUI implements InterfaceListener
 		}
 	};
 	
-	public Action linkAction = new AbstractAction() {
+	public Action linkAction = new StyledTextAction("Link") {
+		
+		private int findEarliestElementWithLink(Element el, String link)
+		{
+			int pos = el.getStartOffset()-1;
+			Element test = document.getCharacterElement(pos);
+			AttributeSet attrs = test.getAttributes();
+			AttributeSet lattr = (AttributeSet)attrs.getAttribute(HTML.Tag.A);
+			if ((lattr!=null)&&(lattr.isDefined(HTML.Attribute.HREF)))
+			{
+				String check = (String)lattr.getAttribute(HTML.Attribute.HREF);
+				if (check.equals(link))
+				{
+					return findEarliestElementWithLink(test,link);
+				}
+			}
+			return el.getStartOffset();
+		}
+		
+		private int findLatestElementWithLink(Element el, String link)
+		{
+			int pos = el.getEndOffset();
+			Element test = document.getCharacterElement(pos);
+			AttributeSet attrs = test.getAttributes();
+			AttributeSet lattr = (AttributeSet)attrs.getAttribute(HTML.Tag.A);
+			if ((lattr!=null)&&(lattr.isDefined(HTML.Attribute.HREF)))
+			{
+				String check = (String)lattr.getAttribute(HTML.Attribute.HREF);
+				if (check.equals(link))
+				{
+					return findLatestElementWithLink(test,link);
+				}
+			}
+			return el.getEndOffset();
+		}
+		
 		public void actionPerformed(ActionEvent ev)
 		{
-			log.info("Attempting to load page browser");
-			try
+			int start = editorPane.getSelectionStart();
+			int end = editorPane.getSelectionEnd();
+			if (start>end)
 			{
-				swim.getPageBrowser().choosePage();
+				int temp=start;
+				start=end;
+				end=temp;
 			}
-			catch (Exception e)
+			Element el = document.getCharacterElement(start);
+			
+			String link=null;
+			AttributeSet attrs = el.getAttributes();
+			AttributeSet lattr = (AttributeSet)attrs.getAttribute(HTML.Tag.A);
+			if ((lattr!=null)&&(lattr.isDefined(HTML.Attribute.HREF)))
 			{
-				log.warn("Error opening page browser",e);
-				ErrorReporter.sendErrorReport(
-						"Error loading page browser","Due to an unknown reason, the page browser could not be loaded.",
-						"Swim","WebEdit","Could not load page browser",e);
+				link=(String)lattr.getAttribute(HTML.Attribute.HREF);
+				start=findEarliestElementWithLink(el,link);
+				end=findLatestElementWithLink(el,link);
+				editorPane.setSelectionStart(start);
+				editorPane.setSelectionEnd(end);
+			}
+			LinkDialog dlg = new LinkDialog(swim,attachments,link);
+			dlg.show();
+			if (dlg.result==LinkDialog.RESULT_CANCEL)
+				return;
+			
+			if (dlg.result==LinkDialog.RESULT_OK)
+			{
+				MutableAttributeSet tagattrs = new SimpleAttributeSet();
+				tagattrs.addAttribute(HTML.Attribute.HREF,dlg.path);
+				MutableAttributeSet replacement = new SimpleAttributeSet();
+				replacement.addAttribute(HTML.Tag.A,tagattrs);
+				document.setCharacterAttributes(start,end-start,replacement,false);
+			}
+			else
+			{
+				document.removeCharacterAttribute(start,end-start,HTML.Tag.A);
 			}
 		}
 	};
@@ -288,7 +348,6 @@ public class EditorUI implements InterfaceListener
 	public EditorUI(AppletContext context, SwimInterface swim, String resource, String style, URL cancel, URL commit)
 	{
 		this.swim=swim;
-		this.resource=resource;
 		this.htmlPath=resource+"/block.html";
 		this.attachments=resource+"/attachments";
 		this.stylePath=style;
@@ -371,6 +430,7 @@ public class EditorUI implements InterfaceListener
 	
 	private void matchElementAttributes(Element element, MutableAttributeSet attrs, boolean first)
 	{
+		matchElementAttribute(element,attrs,first,HTML.Tag.A);
 		matchElementAttribute(element,attrs,first,StyleConstants.Alignment);
 		matchElementAttribute(element,attrs,first,StyleConstants.Bold);
 		matchElementAttribute(element,attrs,first,StyleConstants.Italic);
@@ -393,6 +453,8 @@ public class EditorUI implements InterfaceListener
 		}
 		
 		boolean selection = (caret.getDot()!=caret.getMark());
+		boolean singlepara = document.getParagraphElement(caret.getDot())==document.getParagraphElement(caret.getMark());
+		
 		cut.setEnabled(selection);
 		copy.setEnabled(selection);
 		
@@ -409,6 +471,9 @@ public class EditorUI implements InterfaceListener
 		bold.setSelected(StyleConstants.isBold(attrs));
 		italic.setSelected(StyleConstants.isItalic(attrs));
 		underline.setSelected(StyleConstants.isUnderline(attrs));
+		
+		link.setSelected(attrs.isDefined(HTML.Tag.A));
+		link.setEnabled(link.isSelected()||(selection&&singlepara));
 		
 		elements = document.getParagraphElementIterator(caret.getDot(),caret.getMark());
 		StyleModel styles = (StyleModel)style.getModel();
@@ -457,7 +522,7 @@ public class EditorUI implements InterfaceListener
 		editorPane.addCaretListener(new CaretListener() {
 			public void caretUpdate(CaretEvent e)
 			{
-				/*int offset = e.getDot();
+				int offset = e.getDot();
 				System.out.println("Caret moved to "+offset);
 				Element el = document.getCharacterElement(offset);
 				while (el!=null)
@@ -474,11 +539,11 @@ public class EditorUI implements InterfaceListener
 						Object name = en.nextElement();
 						if (name!=StyleConstants.NameAttribute)
 						{
-							System.out.println(name+" = "+el.getAttributes().getAttribute(name));
+							System.out.println(name.getClass().getName()+" = "+el.getAttributes().getAttribute(name));
 						}
 					}
 					el=el.getParentElement();
-				}*/
+				}
 				updateToolbar();
 			}
 		});

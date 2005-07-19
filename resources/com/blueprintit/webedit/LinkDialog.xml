@@ -1,0 +1,46 @@
+<!--
+	$HeadURL$
+	$LastChangedBy$
+	$Date$
+	$Revision$
+-->
+
+<dialog id="dialog" resizable="false" layout="BorderLayout" size="400,170">
+	<panel constraints="BorderLayout.CENTER" layout="GridBagLayout">
+		<buttongroup>
+			<radiobutton tooltiptext="Link to a page in your website." action="radioInternalAction" id="radioInternal" text="Link to internal page">
+				<gridbagconstraints insets="10,10,2,2" anchor="GridBagConstraints.LINE_START" gridx="0" gridy="0" gridwidth="2" weightx="1"/>
+			</radiobutton>
+			<radiobutton toolTipText="Link to an external webpage." action="radioExternalAction" id="radioExternal" text="Link to external website">
+				<gridbagconstraints insets="2,10,2,2" anchor="GridBagConstraints.LINE_START" gridx="0" gridy="1"/>
+			</radiobutton>
+			<radiobutton toolTipText="Link to an attachment." action="radioAttachmentAction" id="radioAttachment" text="Link to an attachment">
+				<gridbagconstraints insets="2,10,2,2" anchor="GridBagConstraints.LINE_START" gridx="0" gridy="2"/>
+			</radiobutton>
+		</buttongroup>
+	
+		<textfield enabled="false" id="textExternal">
+			<gridbagconstraints insets="2,2,2,2" gridx="1" gridy="1" anchor="GridBagConstraints.CENTER" weightx="1" fill="GridBagConstraints.HORIZONTAL"/>
+		</textfield>
+		<textfield enabled="false" id="textAttachment">
+			<gridbagconstraints insets="2,2,2,2" gridx="1" gridy="2" anchor="GridBagConstraints.CENTER" weightx="1" fill="GridBagConstraints.HORIZONTAL"/>
+		</textfield>
+	
+		<button toolTipText="Select the page in your site to link to." action="browseInternalAction">
+			<gridbagconstraints insets="10,2,2,10" gridx="2" gridy="0" anchor="GridBagConstraints.CENTER" fill="GridBagConstraints.HORIZONTAL"/>
+		</button>
+		<button toolTipText="Change the webpage that this links to." action="changeExternalAction">
+			<gridbagconstraints insets="2,2,2,10" gridx="2" gridy="1" anchor="GridBagConstraints.CENTER" fill="GridBagConstraints.HORIZONTAL"/>
+		</button>
+		<button toolTipText="Change the attachmant that this links to." action="changeAttachmentAction">
+			<gridbagconstraints insets="2,2,2,10" gridx="2" gridy="2" anchor="GridBagConstraints.CENTER" fill="GridBagConstraints.HORIZONTAL"/>
+		</button>
+
+		<panel>	
+			<gridbagconstraints insets="2,10,2,10" gridx="0" gridy="3" gridwidth="3" weighty="1" weightx="1" fill="GridBagConstraints.NONE" anchor="GridBagConstraints.CENTER"/>-->
+			<button action="okAction"/>
+			<button id="btnDelete" action="deleteAction" visible="false"/>
+			<button action="cancelAction"/>
+		</panel>
+	</panel>
+</dialog>

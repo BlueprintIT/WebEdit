@@ -1,0 +1,21 @@
+<!--
+	$HeadURL$
+	$LastChangedBy$
+	$Date$
+	$Revision$
+-->
+
+<dialog id="dialog" resizable="true" layout="BorderLayout" size="500,300">
+	<panel constraints="BorderLayout.CENTER" layout="BorderLayout">
+		<scrollpane constraints="BorderLayout.CENTER">
+			<list id="fileList" initclass="javax.swing.DefaultListModel"></list>
+		</scrollpane>
+		<vbox constraints="BorderLayout.EAST">
+			<button action="addAction"/>
+			<button action="deleteAction"/>
+		</vbox>
+	</panel>
+	<panel constraints="BorderLayout.SOUTH">
+		<button action="okAction"/>
+	</panel>
+</dialog>
