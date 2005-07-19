@@ -365,6 +365,7 @@ public class EditorUI implements InterfaceListener
 		setupToolbarButton(pasteAction,"","Paste","icons/paste.gif");
 
 		setupToolbarButton(attachmentAction,"","Attachments","icons/attach.gif");
+		setupToolbarButton(linkAction,"","Link","icons/link.gif");
 
 		setupToolbarButton(orderedListAction,"","Ordered List","icons/ol.gif");
 		setupToolbarButton(unorderedListAction,"","Unordered List","icons/ul.gif");

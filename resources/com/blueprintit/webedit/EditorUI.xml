@@ -36,7 +36,7 @@
 			<separator/>
 			<combobox id="style" initclass="com.blueprintit.webedit.StyleModel" focusable="false" action="applyStyleAction"/>
 			<separator/>
-			<togglebutton id="link" action="linkAction" focusable="false" text="Link"/>
+			<togglebutton id="link" action="linkAction" focusable="false"/>
 			<separator/>
 			<button id="olist" action="orderedListAction" focusable="false"/>
 			<button id="ulist" action="unorderedListAction" focusable="false"/>
