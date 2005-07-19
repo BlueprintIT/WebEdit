@@ -79,6 +79,8 @@ public class EditorUI implements InterfaceListener
 	}
 
 	private SwimInterface swim;
+	private String resource;
+	private String attachments;
 	private String htmlPath;
 	private String stylePath;
 
@@ -88,6 +90,8 @@ public class EditorUI implements InterfaceListener
 	private StyleSheet stylesheet;
 
 	public JComboBox style;
+	
+	public JToggleButton link;
 	
 	public JButton cut;
 	public JButton copy;
@@ -163,6 +167,14 @@ public class EditorUI implements InterfaceListener
 		}
 	};
 	
+	public Action attachmentAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent ev)
+		{
+			AttachmentDialog dlg = new AttachmentDialog(swim,attachments);
+			dlg.show();
+		}
+	};
+	
 	public Action linkAction = new AbstractAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
@@ -180,9 +192,7 @@ public class EditorUI implements InterfaceListener
 			}
 		}
 	};
-	
-	public Action testAction = new DefaultEditorKit.InsertBreakAction();
-	
+		
 	public Action orderedListAction = new WebEditEditorKit.ToggleOrderedListAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
@@ -190,7 +200,6 @@ public class EditorUI implements InterfaceListener
 			updateToolbar();
 		}
 	};
-	
 	public Action unorderedListAction = new WebEditEditorKit.ToggleUnorderedListAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
@@ -276,10 +285,12 @@ public class EditorUI implements InterfaceListener
 
 	private AppletContext context;
 	
-	public EditorUI(AppletContext context, SwimInterface swim, String path, String style, URL cancel, URL commit)
+	public EditorUI(AppletContext context, SwimInterface swim, String resource, String style, URL cancel, URL commit)
 	{
 		this.swim=swim;
-		this.htmlPath=path;
+		this.resource=resource;
+		this.htmlPath=resource+"/block.html";
+		this.attachments=resource+"/attachments";
 		this.stylePath=style;
 		this.cancelURL=cancel;
 		this.commitURL=commit;
@@ -293,6 +304,8 @@ public class EditorUI implements InterfaceListener
 		setupToolbarButton(cutAction,"","Cut","icons/cut.gif");
 		setupToolbarButton(copyAction,"","Copy","icons/copy.gif");
 		setupToolbarButton(pasteAction,"","Paste","icons/paste.gif");
+
+		setupToolbarButton(attachmentAction,"","Attachments","icons/attach.gif");
 
 		setupToolbarButton(orderedListAction,"","Ordered List","icons/ol.gif");
 		setupToolbarButton(unorderedListAction,"","Unordered List","icons/ul.gif");

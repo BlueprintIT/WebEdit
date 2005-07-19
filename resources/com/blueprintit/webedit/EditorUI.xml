@@ -27,6 +27,8 @@
 			<button action="saveAction" focusable="false" toolTipText="Save the current edits to the working version.">Save Working Version</button>
 			<button action="commitAction" focusable="false" toolTipText="Save the current edits and commit this as a new version.">Save &amp; Commit</button>
 			<button action="dumpAction" focusable="false">Dump</button>
+			<separator/>
+			<button id="attach" action="attachmentAction" focusable="false"/>
 		</toolbar>
 		<toolbar rollover="true" floatable="false">
 			<gridbagconstraints gridx="0" gridy="2" fill="GridBagConstraints.HORIZONTAL"/>
@@ -34,17 +36,19 @@
 			<separator/>
 			<combobox id="style" initclass="com.blueprintit.webedit.StyleModel" focusable="false" action="applyStyleAction"/>
 			<separator/>
+			<button id="link" action="linkAction" focusable="false" text="Link"/>
+			<separator/>
 			<button id="olist" action="orderedListAction" focusable="false"/>
 			<button id="ulist" action="unorderedListAction" focusable="false"/>
-			<separator/>
-			<button id="cut" action="cutAction" focusable="false"/>
-			<button id="copy" action="copyAction" focusable="false"/>
-			<button id="paste" action="pasteAction" focusable="false"/>
 			<separator/>
 			<togglebutton id="leftAlign" action="leftAlignAction" focusable="false"/>
 			<togglebutton id="centerAlign" action="centerAlignAction" focusable="false"/>
 			<togglebutton id="rightAlign" action="rightAlignAction" focusable="false"/>
 			<togglebutton id="justifyAlign" action="justifiedAlignAction" focusable="false"/>
+			<separator/>
+			<button id="cut" action="cutAction" focusable="false"/>
+			<button id="copy" action="copyAction" focusable="false"/>
+			<button id="paste" action="pasteAction" focusable="false"/>
 			<separator/>
 			<togglebutton id="bold" action="boldAction" focusable="false"/>
 			<togglebutton id="italic" action="italicAction" focusable="false"/>

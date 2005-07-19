@@ -40,7 +40,7 @@ public class WebEdit extends JApplet
 			{
 			}
 			String urlbase=getParameter("swim.base");
-			String path=getParameter("html");
+			String path=getParameter("resource");
 			String style=getParameter("style");
 			try
 			{
