@@ -15,6 +15,8 @@ import java.util.Iterator;
 import javax.swing.JLabel;
 import javax.swing.JProgressBar;
 
+import org.apache.log4j.Logger;
+
 import com.blueprintit.swim.Request;
 import com.blueprintit.swim.SwimInterface;
 import com.blueprintit.xui.InterfaceEvent;
@@ -23,6 +25,8 @@ import com.blueprintit.xui.UserInterface;
 
 public class UploadProgress implements InterfaceListener, Runnable
 {
+	private Logger log = Logger.getLogger(this.getClass());
+
 	private File[] files = null;
 	private String path;
 	private UserInterface ui;
@@ -112,11 +116,13 @@ public class UploadProgress implements InterfaceListener, Runnable
 				}
 				catch (IOException ioe)
 				{
+					log.warn(ioe);
 				}
 			}
 			catch (FileNotFoundException e)
 			{
 				totalProgress.setValue(totalProgress.getValue()+(int)file.length());
+				log.warn(e);
 			}
 			totalpos+=(int)file.length();
 			i++;

@@ -34,6 +34,7 @@ import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledEditorKit;
 import javax.swing.text.StyledEditorKit.StyledTextAction;
+import javax.swing.text.html.CSS;
 import javax.swing.text.html.HTML;
 import javax.swing.text.html.StyleSheet;
 import javax.swing.text.html.HTMLEditorKit;
@@ -91,6 +92,10 @@ public class EditorUI implements InterfaceListener
 	public JComboBox style;
 	
 	public JToggleButton link;
+	public JToggleButton image;
+	public JToggleButton floatLeft;
+	public JToggleButton floatNone;
+	public JToggleButton floatRight;
 	
 	public JButton cut;
 	public JButton copy;
@@ -155,7 +160,13 @@ public class EditorUI implements InterfaceListener
 	public Action dumpAction = new AbstractAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
-			System.out.println(editorPane.getText());
+			try
+			{
+				System.out.println(editorPane.getText());
+			}
+			catch (Exception e)
+			{
+			}
 		}
 	};
 	
@@ -171,6 +182,85 @@ public class EditorUI implements InterfaceListener
 		{
 			AttachmentDialog dlg = new AttachmentDialog(swim,attachments);
 			dlg.show();
+		}
+	};
+	
+	public Action imageAction = new StyledTextAction("Image") {
+		public void actionPerformed(ActionEvent ev)
+		{
+			int start = editorPane.getSelectionStart();
+			int end = editorPane.getSelectionEnd();
+			if (start>end)
+			{
+				int temp=start;
+				start=end;
+				end=temp;
+			}
+			Element el = document.getCharacterElement(start);
+			String src = null;
+			if ((el.getStartOffset()==start)&&(el.getEndOffset()==end))
+			{
+				if ((!el.getAttributes().isDefined(StyleConstants.NameAttribute))||
+					(el.getAttributes().getAttribute(StyleConstants.NameAttribute)!=HTML.Tag.IMG))
+				{
+					el=null;
+				}
+				else
+				{
+					src=(String)el.getAttributes().getAttribute(HTML.Attribute.SRC);
+				}
+			}
+			else
+			{
+				el=null;
+			}
+			ImageDialog dlg = new ImageDialog(swim,attachments,src);
+			dlg.show();
+			
+			if (dlg.result==ImageDialog.RESULT_OK)
+			{
+				src=dlg.path.substring(resource.length()+1);
+				MutableAttributeSet newattrs = new SimpleAttributeSet();
+				newattrs.addAttribute(StyleConstants.NameAttribute,HTML.Tag.IMG);
+				newattrs.addAttribute(HTML.Attribute.SRC,src);
+				if (el!=null)
+				{
+					document.setCharacterAttributes(start,end-start,newattrs,false);
+				}
+				else
+				{
+					editorPane.replaceSelection(" ");
+					document.setCharacterAttributes(start,1,newattrs,true);
+				}
+			}
+			updateToolbar();
+		}
+	};
+	
+	public Action floatLeftAction = new WebEditEditorKit.FloatLeftAction("float-left") {
+
+		public void actionPerformed(ActionEvent e)
+		{
+			super.actionPerformed(e);
+			updateToolbar();
+		}
+	};
+	
+	public Action floatNoneAction = new WebEditEditorKit.FloatNoneAction("float-none") {
+
+		public void actionPerformed(ActionEvent e)
+		{
+			super.actionPerformed(e);
+			updateToolbar();
+		}
+	};
+	
+	public Action floatRightAction = new WebEditEditorKit.FloatRightAction("float-right") {
+
+		public void actionPerformed(ActionEvent e)
+		{
+			super.actionPerformed(e);
+			updateToolbar();
 		}
 	};
 	
@@ -241,7 +331,7 @@ public class EditorUI implements InterfaceListener
 			if (dlg.result==LinkDialog.RESULT_OK)
 			{
 				MutableAttributeSet tagattrs = new SimpleAttributeSet();
-				tagattrs.addAttribute(HTML.Attribute.HREF,dlg.path);
+				tagattrs.addAttribute(HTML.Attribute.HREF,dlg.path.substring(resource.length()+1));
 				MutableAttributeSet replacement = new SimpleAttributeSet();
 				replacement.addAttribute(HTML.Tag.A,tagattrs);
 				document.setCharacterAttributes(start,end-start,replacement,false);
@@ -344,10 +434,12 @@ public class EditorUI implements InterfaceListener
 	private URL commitURL;
 
 	private AppletContext context;
+	private String resource;
 	
 	public EditorUI(AppletContext context, SwimInterface swim, String resource, String style, URL cancel, URL commit)
 	{
 		this.swim=swim;
+		this.resource=resource;
 		this.htmlPath=resource+"/block.html";
 		this.attachments=resource+"/attachments";
 		this.stylePath=style;
@@ -366,6 +458,12 @@ public class EditorUI implements InterfaceListener
 
 		setupToolbarButton(attachmentAction,"","Attachments","icons/attach.gif");
 		setupToolbarButton(linkAction,"","Link","icons/link.gif");
+
+		setupToolbarButton(imageAction,"","Add Image","icons/image.gif");
+
+		setupToolbarButton(floatLeftAction,"","Float Left","icons/float-left.gif");
+		setupToolbarButton(floatRightAction,"","Float Right","icons/float-right.gif");
+		setupToolbarButton(floatNoneAction,"","No Float","icons/float-none.gif");
 
 		setupToolbarButton(orderedListAction,"","Ordered List","icons/ol.gif");
 		setupToolbarButton(unorderedListAction,"","Unordered List","icons/ul.gif");
@@ -431,11 +529,37 @@ public class EditorUI implements InterfaceListener
 	
 	private void matchElementAttributes(Element element, MutableAttributeSet attrs, boolean first)
 	{
+		matchElementAttribute(element,attrs,first,StyleConstants.NameAttribute);
 		matchElementAttribute(element,attrs,first,HTML.Tag.A);
+		matchElementAttribute(element,attrs,first,CSS.Attribute.FLOAT);
 		matchElementAttribute(element,attrs,first,StyleConstants.Alignment);
 		matchElementAttribute(element,attrs,first,StyleConstants.Bold);
 		matchElementAttribute(element,attrs,first,StyleConstants.Italic);
 		matchElementAttribute(element,attrs,first,StyleConstants.Underline);
+		/*if (first)
+		{
+			attrs.addAttributes(element.getAttributes());
+		}
+		else
+		{
+			AttributeSet elattrs = element.getAttributes();
+			Enumeration en = attrs.getAttributeNames();
+			while (en.hasMoreElements())
+			{
+				Object attr = en.nextElement();
+				if (elattrs.isDefined(attr))
+				{
+					if (!attrs.getAttribute(attr).equals(elattrs.getAttribute(attr)))
+					{
+						attrs.removeAttribute(attr);
+					}
+				}
+				else
+				{
+					attrs.removeAttribute(attr);
+				}
+			}
+		}*/
 	}
 	
 	private void updateToolbar()
@@ -459,6 +583,12 @@ public class EditorUI implements InterfaceListener
 		cut.setEnabled(selection);
 		copy.setEnabled(selection);
 		
+		HTML.Tag tag = null;
+		if (attrs.isDefined(StyleConstants.NameAttribute))
+		{
+			tag=(HTML.Tag)attrs.getAttribute(StyleConstants.NameAttribute);
+		}
+		
 		int align = -1;
 		if (attrs.isDefined(StyleConstants.Alignment))
 		{
@@ -475,6 +605,40 @@ public class EditorUI implements InterfaceListener
 		
 		link.setSelected(attrs.isDefined(HTML.Tag.A));
 		link.setEnabled(link.isSelected()||(selection&&singlepara));
+		
+		boolean selectedImage = (tag==HTML.Tag.IMG)&&selection;
+		image.setSelected(selectedImage);
+		if (selectedImage)
+		{
+			boolean floated=false;
+			boolean floatleft=false;
+			if (attrs.isDefined(CSS.Attribute.FLOAT))
+			{
+				String dir = ((String)attrs.getAttribute(CSS.Attribute.FLOAT)).toLowerCase();
+				if (dir.equals("left"))
+				{
+					floatleft=true;
+					floated=true;
+				}
+				else if (dir.equals("right"))
+				{
+					floatleft=false;
+					floated=true;
+				}
+			}
+			floatLeft.setSelected(floated&&floatleft);
+			floatNone.setSelected(!floated);
+			floatRight.setSelected(floated&&(!floatleft));
+		}
+		else
+		{
+			floatLeft.setSelected(false);
+			floatNone.setSelected(false);
+			floatRight.setSelected(false);
+		}
+		floatLeft.setEnabled(selectedImage);
+		floatNone.setEnabled(selectedImage);
+		floatRight.setEnabled(selectedImage);
 		
 		elements = document.getParagraphElementIterator(caret.getDot(),caret.getMark());
 		StyleModel styles = (StyleModel)style.getModel();
@@ -523,7 +687,7 @@ public class EditorUI implements InterfaceListener
 		editorPane.addCaretListener(new CaretListener() {
 			public void caretUpdate(CaretEvent e)
 			{
-				int offset = e.getDot();
+				/*int offset = e.getDot();
 				System.out.println("Caret moved to "+offset);
 				Element el = document.getCharacterElement(offset);
 				while (el!=null)
@@ -544,7 +708,7 @@ public class EditorUI implements InterfaceListener
 						}
 					}
 					el=el.getParentElement();
-				}
+				}*/
 				updateToolbar();
 			}
 		});
@@ -557,6 +721,8 @@ public class EditorUI implements InterfaceListener
 			
 			document=(WebEditDocument)editorKit.createDefaultDocument();
 			document.getStyleSheet().addStyleSheet(stylesheet);
+			req = new Request(swim,"view","version/temp/"+htmlPath);
+			document.setBase(req.encode());
 			editorPane.setDocument(document);
 			
 			body=findBody(document.getDefaultRootElement());

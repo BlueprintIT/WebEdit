@@ -39,7 +39,6 @@
 		<panel>	
 			<gridbagconstraints insets="2,10,2,10" gridx="0" gridy="3" gridwidth="3" weighty="1" weightx="1" fill="GridBagConstraints.NONE" anchor="GridBagConstraints.CENTER"/>-->
 			<button action="okAction"/>
-			<button id="btnDelete" action="deleteAction" visible="false"/>
 			<button action="cancelAction"/>
 		</panel>
 	</panel>
