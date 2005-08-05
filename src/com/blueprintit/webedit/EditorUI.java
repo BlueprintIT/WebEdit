@@ -22,6 +22,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JEditorPane;
+import javax.swing.JOptionPane;
 import javax.swing.JToggleButton;
 import javax.swing.event.CaretEvent;
 import javax.swing.event.CaretListener;
@@ -114,7 +115,7 @@ public class EditorUI implements InterfaceListener
 
 	private String resources = "com/blueprintit/webedit";
 	
-	private void saveWorking()
+	private boolean saveWorking()
 	{
 		StringBuffer text = new StringBuffer(editorPane.getText());
 		int pos = text.indexOf("<body");
@@ -132,21 +133,34 @@ public class EditorUI implements InterfaceListener
 			writer.write(text.toString());
 			log.debug("Closing");
 			writer.close();
+			return true;
 		}
 		catch (IOException e)
 		{
-			log.error("Could not store",e);
-			ErrorReporter.sendErrorReport(
-					"Unable to save","The file could not be saved, probably because the server is currently unavailable.",
-					"Swim","WebEdit","Could not save",e);
+			if (e.getMessage().startsWith("Server returned HTTP response code: 409 for URL"))
+			{
+				JOptionPane.showMessageDialog(null,"Another user has taken over editing of this resource, you will be unable to save your changes.","Resource Locked",JOptionPane.ERROR_MESSAGE);
+			}
+			else if (e.getMessage().startsWith("Server returned HTTP response code: 401 for URL"))
+			{
+				JOptionPane.showMessageDialog(null,"You are no longer logged in to the server, your session probably expired.","Authentication Required",JOptionPane.ERROR_MESSAGE);
+			}
+			else
+			{
+				log.error("Could not store",e);
+				ErrorReporter.sendErrorReport(
+						"Unable to save","The file could not be saved, probably because the server is currently unavailable.",
+						"Swim","WebEdit","Could not save",e);
+			}
+			return false;
 		}
 	}
 	
 	public Action commitAction = new AbstractAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
-			saveWorking();
-			context.showDocument(commitURL);
+			if (saveWorking())
+				context.showDocument(commitURL);
 		}
 	};
 	
@@ -436,12 +450,12 @@ public class EditorUI implements InterfaceListener
 	private AppletContext context;
 	private String resource;
 	
-	public EditorUI(AppletContext context, SwimInterface swim, String resource, String style, URL cancel, URL commit)
+	public EditorUI(AppletContext context, SwimInterface swim, String resource, String html, String style, URL cancel, URL commit)
 	{
 		this.swim=swim;
 		this.resource=resource;
-		this.htmlPath=resource+"/block.html";
-		this.attachments=resource+"/attachments";
+		this.htmlPath=resource+"/file/"+html;
+		this.attachments=resource+"/file/attachments";
 		this.stylePath=style;
 		this.cancelURL=cancel;
 		this.commitURL=commit;
