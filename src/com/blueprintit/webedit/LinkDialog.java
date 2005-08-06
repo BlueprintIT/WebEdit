@@ -13,6 +13,7 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
+import com.blueprintit.swim.Page;
 import com.blueprintit.swim.PageBrowser;
 import com.blueprintit.swim.SwimInterface;
 import com.blueprintit.xui.InterfaceEvent;
@@ -24,6 +25,7 @@ public class LinkDialog implements InterfaceListener
 	private Logger log = Logger.getLogger(this.getClass());
 
 	public JTextField textAttachment;
+	public JTextField textInternal;
 	public JTextField textExternal;
 
 	public JRadioButton radioInternal;
@@ -65,10 +67,11 @@ public class LinkDialog implements InterfaceListener
 		public void actionPerformed(ActionEvent e)
 		{
 			PageBrowser dlg = swim.getPageBrowser();
-			String page = dlg.choosePage(path);
-			if ((page!=null)&&(page.length()>0))
+			Page page = dlg.choosePage(path);
+			if (page!=null)
 			{
-				path=page;
+				path="/"+page.getResource();
+				textInternal.setText(page.getTitle());
 			}
 		}
 	};
@@ -171,6 +174,11 @@ public class LinkDialog implements InterfaceListener
 		{
 			if (path.startsWith("/"))
 			{
+				Page page = swim.getPage(path.substring(1));
+				if (page!=null)
+				{
+					textInternal.setText(page.getTitle());
+				}
 				radioInternal.setSelected(true);
 				btnDelete.setVisible(true);
 			}

@@ -19,6 +19,9 @@
 			</radiobutton>
 		</buttongroup>
 	
+		<textfield enabled="false" id="textInternal">
+			<gridbagconstraints insets="2,2,2,2" gridx="1" gridy="0" anchor="GridBagConstraints.CENTER" weightx="1" fill="GridBagConstraints.HORIZONTAL"/>
+		</textfield>
 		<textfield enabled="false" id="textExternal">
 			<gridbagconstraints insets="2,2,2,2" gridx="1" gridy="1" anchor="GridBagConstraints.CENTER" weightx="1" fill="GridBagConstraints.HORIZONTAL"/>
 		</textfield>
