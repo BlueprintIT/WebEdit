@@ -345,7 +345,7 @@ public class EditorUI implements InterfaceListener
 			if (dlg.result==LinkDialog.RESULT_OK)
 			{
 				MutableAttributeSet tagattrs = new SimpleAttributeSet();
-				tagattrs.addAttribute(HTML.Attribute.HREF,dlg.path.substring(resource.length()+1));
+				tagattrs.addAttribute(HTML.Attribute.HREF,dlg.path);
 				MutableAttributeSet replacement = new SimpleAttributeSet();
 				replacement.addAttribute(HTML.Tag.A,tagattrs);
 				document.setCharacterAttributes(start,end-start,replacement,false);
@@ -357,7 +357,7 @@ public class EditorUI implements InterfaceListener
 		}
 	};
 		
-	public Action orderedListAction = new WebEditEditorKit.ToggleOrderedListAction() {
+	public Action orderedListAction = new WebEditEditorKit.ToggleUnorderedListAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
 			super.actionPerformed(ev);
@@ -706,7 +706,7 @@ public class EditorUI implements InterfaceListener
 				Element el = document.getCharacterElement(offset);
 				while (el!=null)
 				{
-					System.out.println("Element "+el.getStartOffset()+" "+el.getEndOffset()+" ("+el.getClass().toString()+")");
+					System.out.println("Element "+el.getStartOffset()+" "+el.getEndOffset()+" "+el.getElementCount()+" ("+el.getClass().toString()+")");
 					HTML.Tag tag = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
 					if (tag!=null)
 					{

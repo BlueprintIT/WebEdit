@@ -27,7 +27,7 @@ public class AttachmentDialog implements InterfaceListener
 {
 	private SwimInterface swim;
 	private String path;
-	private String returnPath = null;
+	private RemoteFile returnPath;
 	
 	private RemoteDir attachments = null;
 	
@@ -47,8 +47,7 @@ public class AttachmentDialog implements InterfaceListener
 		{
 			if (fileList.getSelectedIndex()>=0)
 			{
-				RemoteFile file = (RemoteFile)fileList.getSelectedValue();
-				returnPath=file.getPath();
+				returnPath = (RemoteFile)fileList.getSelectedValue();
 			}
 			dialog.setVisible(false);
 		}
@@ -97,7 +96,7 @@ public class AttachmentDialog implements InterfaceListener
 		}
 	};
 	
-	public String select()
+	public RemoteFile select()
 	{
 		show();
 		return returnPath;

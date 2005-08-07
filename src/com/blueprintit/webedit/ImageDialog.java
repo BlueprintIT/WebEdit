@@ -12,6 +12,7 @@ import javax.swing.JTextField;
 
 import org.apache.log4j.Logger;
 
+import com.blueprintit.swim.RemoteFile;
 import com.blueprintit.swim.SwimInterface;
 import com.blueprintit.xui.InterfaceEvent;
 import com.blueprintit.xui.InterfaceListener;
@@ -76,10 +77,10 @@ public class ImageDialog implements InterfaceListener
 	public Action changeAttachmentAction = new AbstractAction("Change...") {
 		public void actionPerformed(ActionEvent e)
 		{
-			String file = (new AttachmentDialog(swim,attachments)).select();
+			RemoteFile file = (new AttachmentDialog(swim,attachments)).select();
 			if (file!=null)
 			{
-				textAttachment.setText(file);
+				textAttachment.setText(file.getName());
 			}
 		}
 	};

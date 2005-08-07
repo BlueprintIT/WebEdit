@@ -15,6 +15,7 @@ import org.apache.log4j.Logger;
 
 import com.blueprintit.swim.Page;
 import com.blueprintit.swim.PageBrowser;
+import com.blueprintit.swim.RemoteFile;
 import com.blueprintit.swim.SwimInterface;
 import com.blueprintit.xui.InterfaceEvent;
 import com.blueprintit.xui.InterfaceListener;
@@ -89,6 +90,7 @@ public class LinkDialog implements InterfaceListener
 			String text = JOptionPane.showInputDialog("Enter a URL for this link:",textExternal.getText());
 			if (text!=null)
 			{
+				path=text;
 				textExternal.setText(text);
 			}
 		}
@@ -104,10 +106,11 @@ public class LinkDialog implements InterfaceListener
 	public Action changeAttachmentAction = new AbstractAction("Change...") {
 		public void actionPerformed(ActionEvent e)
 		{
-			String file = (new AttachmentDialog(swim,attachments)).select();
+			RemoteFile file = (new AttachmentDialog(swim,attachments)).select();
 			if (file!=null)
 			{
-				textAttachment.setText(file);
+				path="attachments/"+file.getName();
+				textAttachment.setText(file.getName());
 			}
 		}
 	};
@@ -123,18 +126,6 @@ public class LinkDialog implements InterfaceListener
 		public void actionPerformed(ActionEvent e)
 		{
 			result=RESULT_OK;
-			if (radioExternal.isSelected())
-			{
-				path=textExternal.getText();
-			}
-			else if (radioAttachment.isSelected())
-			{
-				path=textAttachment.getText();
-			}
-			else
-			{
-				path="/"+path;
-			}
 			dialog.setVisible(false);
 		}
 	};
@@ -186,14 +177,12 @@ public class LinkDialog implements InterfaceListener
 			{
 				radioExternal.setSelected(true);
 				textExternal.setText(path);
-				path=null;
 				btnDelete.setVisible(true);
 			}
 			else if (path.startsWith("attachments/"))
 			{
 				radioAttachment.setSelected(true);
 				textAttachment.setText(path.substring(12));
-				path=null;
 				btnDelete.setVisible(true);
 			}
 		}
