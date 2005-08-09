@@ -63,6 +63,7 @@ public class ImageDialog implements InterfaceListener
 			if (text!=null)
 			{
 				textExternal.setText(text);
+				path=text;
 			}
 		}
 	};
@@ -81,6 +82,7 @@ public class ImageDialog implements InterfaceListener
 			if (file!=null)
 			{
 				textAttachment.setText(file.getName());
+				path="attachments/"+file.getName();
 			}
 		}
 	};
@@ -96,14 +98,6 @@ public class ImageDialog implements InterfaceListener
 		public void actionPerformed(ActionEvent e)
 		{
 			result=RESULT_OK;
-			if (radioExternal.isSelected())
-			{
-				path=textExternal.getText();
-			}
-			else if (radioAttachment.isSelected())
-			{
-				path=textAttachment.getText();
-			}
 			dialog.setVisible(false);
 		}
 	};

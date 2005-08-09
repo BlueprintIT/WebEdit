@@ -233,10 +233,9 @@ public class EditorUI implements InterfaceListener
 			
 			if (dlg.result==ImageDialog.RESULT_OK)
 			{
-				src=dlg.path.substring(resource.length()+1);
 				MutableAttributeSet newattrs = new SimpleAttributeSet();
 				newattrs.addAttribute(StyleConstants.NameAttribute,HTML.Tag.IMG);
-				newattrs.addAttribute(HTML.Attribute.SRC,src);
+				newattrs.addAttribute(HTML.Attribute.SRC,dlg.path);
 				if (el!=null)
 				{
 					document.setCharacterAttributes(start,end-start,newattrs,false);
@@ -448,12 +447,10 @@ public class EditorUI implements InterfaceListener
 	private URL commitURL;
 
 	private AppletContext context;
-	private String resource;
 	
 	public EditorUI(AppletContext context, SwimInterface swim, String resource, String html, String style, URL cancel, URL commit)
 	{
 		this.swim=swim;
-		this.resource=resource;
 		this.htmlPath=resource+"/file/"+html;
 		this.attachments=resource+"/file/attachments";
 		this.stylePath=style;
