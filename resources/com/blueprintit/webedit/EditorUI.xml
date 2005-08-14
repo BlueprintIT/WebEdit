@@ -21,12 +21,16 @@
 		</panel>
 		<toolbar rollover="true" floatable="false">
 			<gridbagconstraints gridx="0" gridy="1" fill="GridBagConstraints.HORIZONTAL"/>
-			<label>General</label>
+			<label foreground="BLUE">General</label>
 			<separator/>
 			<button action="cancelAction" focusable="false" toolTipText="Cancel editing and delete the working copy.">Cancel</button>
-			<button action="saveAction" focusable="false" toolTipText="Save the current edits to the working version.">Save Working Version</button>
-			<button action="commitAction" focusable="false" toolTipText="Save the current edits and commit this as a new version.">Save &amp; Commit</button>
+			<button action="saveAction" focusable="false" toolTipText="Save the current edits to the working version and do not put on line.">Save Working Version</button>
+			<button action="commitAction" focusable="false" toolTipText="Save the current edits and put on line.">Save &amp; Commit</button>
 			<button action="dumpAction" focusable="false">Dump</button>
+			<separator/>
+			<button id="cut" action="cutAction" focusable="false"/>
+			<button id="copy" action="copyAction" focusable="false"/>
+			<button id="paste" action="pasteAction" focusable="false"/>
 			<separator/>
 			<button id="attach" action="attachmentAction" focusable="false"/>
 			<separator/>
@@ -39,10 +43,11 @@
 		</toolbar>
 		<toolbar rollover="true" floatable="false">
 			<gridbagconstraints gridx="0" gridy="2" fill="GridBagConstraints.HORIZONTAL"/>
-			<label>Formatting</label>
+			<label foreground="BLUE">Formatting</label>
 			<separator/>
-			<combobox id="style" initclass="com.blueprintit.webedit.StyleModel" focusable="false" action="applyStyleAction"/>
+			<combobox id="style" focusable="false" action="applyStyleAction"/>
 			<separator/>
+			<button id="ilist" action="increaseListAction" focusable="false" text="Increase"/>
 			<button id="olist" action="orderedListAction" focusable="false"/>
 			<button id="ulist" action="unorderedListAction" focusable="false"/>
 			<separator/>
@@ -50,10 +55,6 @@
 			<togglebutton id="centerAlign" action="centerAlignAction" focusable="false"/>
 			<togglebutton id="rightAlign" action="rightAlignAction" focusable="false"/>
 			<togglebutton id="justifyAlign" action="justifiedAlignAction" focusable="false"/>
-			<separator/>
-			<button id="cut" action="cutAction" focusable="false"/>
-			<button id="copy" action="copyAction" focusable="false"/>
-			<button id="paste" action="pasteAction" focusable="false"/>
 			<separator/>
 			<togglebutton id="bold" action="boldAction" focusable="false"/>
 			<togglebutton id="italic" action="italicAction" focusable="false"/>

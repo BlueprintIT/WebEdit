@@ -6,6 +6,8 @@
  */
 package com.blueprintit.webedit;
 
+import java.io.Reader;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -13,24 +15,38 @@ import java.util.List;
 import javax.swing.AbstractListModel;
 import javax.swing.ComboBoxModel;
 import javax.swing.text.AttributeSet;
-import javax.swing.text.Element;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.html.HTML;
+
+import org.apache.log4j.Logger;
+import org.jdom.Document;
+import org.jdom.Element;
+import org.jdom.filter.ElementFilter;
+import org.jdom.input.SAXBuilder;
 
 public class StyleModel extends AbstractListModel implements ComboBoxModel
 {
 	private List styles = new ArrayList();
 	private Object selected;
 	
+	private Logger log = Logger.getLogger(this.getClass());
+
 	public StyleModel()
 	{
-		styles.add(new Style("Title",HTML.Tag.H1,null));
-		styles.add(new Style("Subtitle",HTML.Tag.H2,null));
-		styles.add(new Style("List",HTML.Tag.LI,null));
-		styles.add(new Style("Normal",HTML.Tag.P,null));
 	}
 	
+	public void loadFrom(Reader reader) throws Exception
+	{
+		SAXBuilder builder = new SAXBuilder();
+		Document list = builder.build(reader);
+		Iterator it = list.getDescendants(new ElementFilter("style"));
+		while (it.hasNext())
+		{
+			styles.add(new Style((Element)it.next()));
+		}
+	}
+
 	public void setSelectedItem(Object anItem)
 	{
 		if ((selected!=anItem)&&((anItem==null)||(styles.contains(anItem))))
@@ -46,7 +62,7 @@ public class StyleModel extends AbstractListModel implements ComboBoxModel
 		}
 	}
 	
-	public Style getStyle(Element element)
+	public Style getStyle(javax.swing.text.Element element)
 	{
 		AttributeSet attrs = element.getAttributes();
 		if (attrs!=null)
@@ -96,6 +112,30 @@ public class StyleModel extends AbstractListModel implements ComboBoxModel
 		private String name;
 		private HTML.Tag tag;
 		private String classname;
+		private boolean fixed;
+		
+		public Style(Element el)
+		{
+			name=el.getAttributeValue("name");
+			String tgname = el.getAttributeValue("tag");
+			if (tgname!=null)
+			{
+				try
+				{
+					Field field = HTML.Tag.class.getField(tgname);
+					tag=(HTML.Tag)field.get(null);
+				}
+				catch (Exception e)
+				{
+					log.info("Invalid tag specified - "+tag);
+				}
+			}
+			classname = el.getAttributeValue("class");
+			if (el.getAttribute("fixed")!=null)
+			{
+				fixed=Boolean.valueOf(el.getAttributeValue("fixed")).booleanValue();
+			}
+		}
 		
 		public Style(String name, HTML.Tag tag, String classname)
 		{
@@ -131,6 +171,11 @@ public class StyleModel extends AbstractListModel implements ComboBoxModel
 			{
 				attr.addAttribute(HTML.Attribute.CLASS,classname);
 			}
+		}
+
+		public boolean isFixed()
+		{
+			return fixed;
 		}
 	}
 }

@@ -28,6 +28,7 @@ public class AttachmentDialog implements InterfaceListener
 	private SwimInterface swim;
 	private String path;
 	private RemoteFile returnPath;
+	private File currentdir;
 	
 	private RemoteDir attachments = null;
 	
@@ -36,10 +37,16 @@ public class AttachmentDialog implements InterfaceListener
 
 	private Logger log = Logger.getLogger(this.getClass());
 
-	public AttachmentDialog(SwimInterface swim, String path)
+	public AttachmentDialog(SwimInterface swim, File current, String path)
 	{
 		this.swim=swim;
 		this.path=path;
+		this.currentdir=current;
+	}
+	
+	public File getCurrentDirectory()
+	{
+		return currentdir;
 	}
 	
 	public Action okAction = new AbstractAction("OK") {
@@ -57,10 +64,15 @@ public class AttachmentDialog implements InterfaceListener
 		public void actionPerformed(ActionEvent ev)
 		{
 			JFileChooser dlg = new JFileChooser();
+			if (currentdir!=null)
+			{
+				dlg.setCurrentDirectory(currentdir);
+			}
 			dlg.setMultiSelectionEnabled(true);
 			dlg.setDialogTitle("Select a File");
 			if (dlg.showOpenDialog(dialog)==JFileChooser.APPROVE_OPTION)
 			{
+				currentdir=dlg.getCurrentDirectory();
 				File[] files = dlg.getSelectedFiles();
 				if (files.length>0)
 				{

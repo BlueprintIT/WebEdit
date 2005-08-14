@@ -5,7 +5,7 @@
 	$Revision$
 -->
 
-<dialog id="dialog" resizable="false" layout="BorderLayout" size="400,170">
+<dialog id="dialog" resizable="false" layout="BorderLayout" size="400,190">
 	<panel constraints="BorderLayout.CENTER" layout="GridBagLayout">
 		<buttongroup>
 			<radiobutton tooltiptext="Link to a page in your website." action="radioInternalAction" id="radioInternal" text="Link to internal page">

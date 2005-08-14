@@ -39,10 +39,12 @@ public class WebEdit extends JApplet
 			catch (Exception e)
 			{
 			}
+			String bodyid=getParameter("id");
 			String urlbase=getParameter("swim.base");
 			String path=getParameter("resource");
 			String style=getParameter("style");
 			String html=getParameter("html");
+			String styleml=getParameter("styleml");
 			try
 			{
 				SwimInterface swim = new SwimInterface(new URL(urlbase));
@@ -50,7 +52,7 @@ public class WebEdit extends JApplet
 				URL commit = new URL(getParameter("commit"));
 				try
 				{
-					new UserInterface(new EditorUI(getAppletContext(),swim,path,html,style,cancel,commit),this);
+					new UserInterface(new EditorUI(getAppletContext(),swim,path,html,style,styleml,cancel,commit,bodyid),this);
 				}
 				catch (Exception e)
 				{

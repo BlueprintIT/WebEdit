@@ -5,7 +5,7 @@
 	$Revision$
 -->
 
-<dialog id="dialog" resizable="false" layout="BorderLayout" size="400,170">
+<dialog id="dialog" resizable="false" layout="BorderLayout" size="400,190">
 	<panel constraints="BorderLayout.CENTER" layout="GridBagLayout">
 		<buttongroup>
 			<radiobutton toolTipText="Show an image from an external website." action="radioExternalAction" id="radioExternal" text="Display an external image">
@@ -16,11 +16,18 @@
 			</radiobutton>
 		</buttongroup>
 	
+		<label text="Alternate description for image:">
+				<gridbagconstraints insets="2,10,2,2" anchor="GridBagConstraints.LINE_START" gridx="0" gridy="2"/>
+		</label>
+	
 		<textfield enabled="false" id="textExternal">
 			<gridbagconstraints insets="2,2,2,2" gridx="1" gridy="0" anchor="GridBagConstraints.CENTER" weightx="1" fill="GridBagConstraints.HORIZONTAL"/>
 		</textfield>
 		<textfield enabled="false" id="textAttachment">
 			<gridbagconstraints insets="2,2,2,2" gridx="1" gridy="1" anchor="GridBagConstraints.CENTER" weightx="1" fill="GridBagConstraints.HORIZONTAL"/>
+		</textfield>
+		<textfield id="textAlternate">
+			<gridbagconstraints insets="2,2,2,2" gridx="1" gridy="2" anchor="GridBagConstraints.CENTER" weightx="1" fill="GridBagConstraints.HORIZONTAL"/>
 		</textfield>
 	
 		<button toolTipText="Change the image shown." action="changeExternalAction">
@@ -31,7 +38,7 @@
 		</button>
 
 		<panel>	
-			<gridbagconstraints insets="2,10,2,10" gridx="0" gridy="2" gridwidth="3" weighty="1" weightx="1" fill="GridBagConstraints.NONE" anchor="GridBagConstraints.CENTER"/>-->
+			<gridbagconstraints insets="2,10,2,10" gridx="0" gridy="3" gridwidth="3" weighty="1" weightx="1" fill="GridBagConstraints.NONE" anchor="GridBagConstraints.CENTER"/>-->
 			<button action="okAction"/>
 			<button id="btnDelete" action="deleteAction" visible="false"/>
 			<button action="cancelAction"/>

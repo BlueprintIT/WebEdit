@@ -9,11 +9,16 @@ package com.blueprintit.webedit;
 import java.applet.AppletContext;
 import java.awt.Cursor;
 import java.awt.event.ActionEvent;
+import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.net.URL;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.StringTokenizer;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -32,6 +37,7 @@ import javax.swing.text.Element;
 import javax.swing.text.DefaultEditorKit;
 import javax.swing.text.MutableAttributeSet;
 import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledEditorKit;
 import javax.swing.text.StyledEditorKit.StyledTextAction;
@@ -45,6 +51,7 @@ import org.apache.log4j.Logger;
 import com.blueprintit.errors.ErrorReporter;
 import com.blueprintit.htmlkit.WebEditDocument;
 import com.blueprintit.htmlkit.WebEditEditorKit;
+import com.blueprintit.htmlkit.WebEditStyleSheet;
 import com.blueprintit.xui.InterfaceEvent;
 import com.blueprintit.xui.InterfaceListener;
 import com.blueprintit.swim.Request;
@@ -89,6 +96,8 @@ public class EditorUI implements InterfaceListener
 	private WebEditDocument document;
 	private Element body;
 	private StyleSheet stylesheet;
+	
+	private File currentdir = null;
 
 	public JComboBox style;
 	
@@ -194,7 +203,7 @@ public class EditorUI implements InterfaceListener
 	public Action attachmentAction = new AbstractAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
-			AttachmentDialog dlg = new AttachmentDialog(swim,attachments);
+			AttachmentDialog dlg = new AttachmentDialog(swim,currentdir,attachments);
 			dlg.show();
 		}
 	};
@@ -212,6 +221,7 @@ public class EditorUI implements InterfaceListener
 			}
 			Element el = document.getCharacterElement(start);
 			String src = null;
+			String alternate="";
 			if ((el.getStartOffset()==start)&&(el.getEndOffset()==end))
 			{
 				if ((!el.getAttributes().isDefined(StyleConstants.NameAttribute))||
@@ -222,20 +232,23 @@ public class EditorUI implements InterfaceListener
 				else
 				{
 					src=(String)el.getAttributes().getAttribute(HTML.Attribute.SRC);
+					alternate=(String)el.getAttributes().getAttribute(HTML.Attribute.ALT);
 				}
 			}
 			else
 			{
 				el=null;
 			}
-			ImageDialog dlg = new ImageDialog(swim,attachments,src);
+			ImageDialog dlg = new ImageDialog(swim,currentdir,attachments,src,alternate);
 			dlg.show();
+			currentdir=dlg.currentdir;
 			
 			if (dlg.result==ImageDialog.RESULT_OK)
 			{
 				MutableAttributeSet newattrs = new SimpleAttributeSet();
 				newattrs.addAttribute(StyleConstants.NameAttribute,HTML.Tag.IMG);
 				newattrs.addAttribute(HTML.Attribute.SRC,dlg.path);
+				newattrs.addAttribute(HTML.Attribute.ALT,dlg.alternate);
 				if (el!=null)
 				{
 					document.setCharacterAttributes(start,end-start,newattrs,false);
@@ -336,8 +349,10 @@ public class EditorUI implements InterfaceListener
 				editorPane.setSelectionStart(start);
 				editorPane.setSelectionEnd(end);
 			}
-			LinkDialog dlg = new LinkDialog(swim,attachments,link);
+			LinkDialog dlg = new LinkDialog(swim,currentdir,attachments,link);
 			dlg.show();
+			currentdir=dlg.currentdir;
+			
 			if (dlg.result==LinkDialog.RESULT_CANCEL)
 				return;
 			
@@ -356,7 +371,14 @@ public class EditorUI implements InterfaceListener
 		}
 	};
 		
-	public Action orderedListAction = new WebEditEditorKit.ToggleUnorderedListAction() {
+	public Action increaseListAction = new WebEditEditorKit.IncreaseListAction() {
+		public void actionPerformed(ActionEvent ev)
+		{
+			super.actionPerformed(ev);
+			updateToolbar();
+		}
+	};
+	public Action orderedListAction = new WebEditEditorKit.ToggleOrderedListAction() {
 		public void actionPerformed(ActionEvent ev)
 		{
 			super.actionPerformed(ev);
@@ -447,13 +469,17 @@ public class EditorUI implements InterfaceListener
 	private URL commitURL;
 
 	private AppletContext context;
+	private String bodyid;
+	private String styleml;
 	
-	public EditorUI(AppletContext context, SwimInterface swim, String resource, String html, String style, URL cancel, URL commit)
+	public EditorUI(AppletContext context, SwimInterface swim, String resource, String html, String style, String styleml, URL cancel, URL commit, String bodyid)
 	{
+		this.bodyid=bodyid;
 		this.swim=swim;
 		this.htmlPath=resource+"/file/"+html;
 		this.attachments=resource+"/file/attachments";
 		this.stylePath=style;
+		this.styleml=styleml;
 		this.cancelURL=cancel;
 		this.commitURL=commit;
 		this.context=context;
@@ -467,14 +493,14 @@ public class EditorUI implements InterfaceListener
 		setupToolbarButton(copyAction,"","Copy","icons/copy.gif");
 		setupToolbarButton(pasteAction,"","Paste","icons/paste.gif");
 
-		setupToolbarButton(attachmentAction,"","Attachments","icons/attach.gif");
-		setupToolbarButton(linkAction,"","Link","icons/link.gif");
+		setupToolbarButton(attachmentAction,"","View attachments","icons/attach.gif");
+		setupToolbarButton(linkAction,"","Make the selection a link.","icons/link.gif");
 
-		setupToolbarButton(imageAction,"","Add Image","icons/image.gif");
+		setupToolbarButton(imageAction,"","Add an image.","icons/image.gif");
 
-		setupToolbarButton(floatLeftAction,"","Float Left","icons/float-left.gif");
-		setupToolbarButton(floatRightAction,"","Float Right","icons/float-right.gif");
-		setupToolbarButton(floatNoneAction,"","No Float","icons/float-none.gif");
+		setupToolbarButton(floatLeftAction,"","Float image left","icons/float-left.gif");
+		setupToolbarButton(floatRightAction,"","Float image right","icons/float-right.gif");
+		setupToolbarButton(floatNoneAction,"","Put image on the text line","icons/float-none.gif");
 
 		setupToolbarButton(orderedListAction,"","Ordered List","icons/ol.gif");
 		setupToolbarButton(unorderedListAction,"","Unordered List","icons/ul.gif");
@@ -588,6 +614,23 @@ public class EditorUI implements InterfaceListener
 			matchElementAttributes(element,attrs,false);
 		}
 		
+		elements = document.getParagraphElementIterator(caret.getDot(),caret.getMark());
+		StyleModel styles = (StyleModel)style.getModel();
+		element = (Element)elements.next();
+		StyleModel.Style style = styles.getStyle(element);
+		while (elements.hasNext())
+		{
+			element=(Element)elements.next();
+			StyleModel.Style nstyle = styles.getStyle(element);
+			if (!style.equals(nstyle))
+			{
+				style=null;
+				break;
+			}
+		}
+		styles.setSelectedItem(style);
+		boolean fixed = style!=null ? style.isFixed() : false;
+
 		boolean selection = (caret.getDot()!=caret.getMark());
 		boolean singlepara = document.getParagraphElement(caret.getDot())==document.getParagraphElement(caret.getMark());
 		
@@ -609,10 +652,17 @@ public class EditorUI implements InterfaceListener
 		centerAlign.setSelected(align==StyleConstants.ALIGN_CENTER);
 		rightAlign.setSelected(align==StyleConstants.ALIGN_RIGHT);
 		justifyAlign.setSelected(align==StyleConstants.ALIGN_JUSTIFIED);
+		leftAlignAction.setEnabled(!fixed);
+		centerAlignAction.setEnabled(!fixed);
+		rightAlignAction.setEnabled(!fixed);
+		justifiedAlignAction.setEnabled(!fixed);
 		
 		bold.setSelected(StyleConstants.isBold(attrs));
 		italic.setSelected(StyleConstants.isItalic(attrs));
 		underline.setSelected(StyleConstants.isUnderline(attrs));
+		boldAction.setEnabled(!fixed);
+		italicAction.setEnabled(!fixed);
+		underlineAction.setEnabled(!fixed);
 		
 		link.setSelected(attrs.isDefined(HTML.Tag.A));
 		link.setEnabled(link.isSelected()||(selection&&singlepara));
@@ -651,21 +701,6 @@ public class EditorUI implements InterfaceListener
 		floatNone.setEnabled(selectedImage);
 		floatRight.setEnabled(selectedImage);
 		
-		elements = document.getParagraphElementIterator(caret.getDot(),caret.getMark());
-		StyleModel styles = (StyleModel)style.getModel();
-		element = (Element)elements.next();
-		StyleModel.Style style = styles.getStyle(element);
-		while (elements.hasNext())
-		{
-			element=(Element)elements.next();
-			StyleModel.Style nstyle = styles.getStyle(element);
-			if (!style.equals(nstyle))
-			{
-				style=null;
-				break;
-			}
-		}
-		styles.setSelectedItem(style);
 		updating=false;
 	}
 	
@@ -698,13 +733,29 @@ public class EditorUI implements InterfaceListener
 		editorPane.addCaretListener(new CaretListener() {
 			public void caretUpdate(CaretEvent e)
 			{
-				/*int offset = e.getDot();
+				int offset = e.getDot();
 				System.out.println("Caret moved to "+offset);
 				Element el = document.getCharacterElement(offset);
-				while (el!=null)
+				Element par = document.getParagraphElement(offset);
+				
+				Style style = document.getStyleSheet().getRule((HTML.Tag)par.getAttributes().getAttribute(StyleConstants.NameAttribute),el);
+				
+				Enumeration enu = style.getAttributeNames();
+				while (enu.hasMoreElements())
 				{
-					System.out.println("Element "+el.getStartOffset()+" "+el.getEndOffset()+" "+el.getElementCount()+" ("+el.getClass().toString()+")");
-					HTML.Tag tag = (HTML.Tag)el.getAttributes().getAttribute(StyleConstants.NameAttribute);
+					Object name = enu.nextElement();
+					Object value = style.getAttribute(name);
+					System.out.println(name+" - "+value);
+				}
+				System.out.println();
+				
+				/*while (el!=null)
+				{
+					System.out.println("Element "+el.getStartOffset()+" "
+															+el.getEndOffset()+" "+el.getElementCount()+" ("
+															+el.getClass().toString()+")");
+					HTML.Tag tag = (HTML.Tag) el.getAttributes().getAttribute(
+							StyleConstants.NameAttribute);
 					if (tag!=null)
 					{
 						System.out.println("Element is tag "+tag.toString());
@@ -715,41 +766,90 @@ public class EditorUI implements InterfaceListener
 						Object name = en.nextElement();
 						if (name!=StyleConstants.NameAttribute)
 						{
-							System.out.println(name.getClass().getName()+" = "+el.getAttributes().getAttribute(name));
+							System.out.println(name.getClass().getName()+" = "
+																	+el.getAttributes().getAttribute(name));
 						}
 					}
-					el=el.getParentElement();
+					el = el.getParentElement();
 				}*/
 				updateToolbar();
 			}
 		});
 		
+		StyleModel styles = new StyleModel();
+		style.setModel(styles);
+		if (styleml!=null)
+		{
+			try
+			{
+				Request req = new Request(swim, "view", styleml);
+				styles.loadFrom(req.openReader());
+			}
+			catch (Exception e)
+			{
+				log.warn("Could not load style configuration", e);
+			}
+		}
+
 		try
 		{
-			Request req = new Request(swim,"view",stylePath);
-			stylesheet = new StyleSheet();
-			stylesheet.loadRules(req.openReader(),req.encode());
-			
-			document=(WebEditDocument)editorKit.createDefaultDocument();
-			document.getStyleSheet().addStyleSheet(stylesheet);
-			req = new Request(swim,"view","version/temp/"+htmlPath);
+			document = ((WebEditEditorKit) editorKit).createDefaultDocument(bodyid);
+
+			List stylesheets = new LinkedList();
+			StringTokenizer tokens = new StringTokenizer(stylePath, ",");
+			while (tokens.hasMoreElements())
+			{
+				stylesheets.add(tokens.nextElement());
+			}
+			Collections.reverse(stylesheets);
+			Iterator it = stylesheets.iterator();
+			while (it.hasNext())
+			{
+				String spath = (String)it.next();
+				try
+				{
+					Request req = new Request(swim, "view", spath);
+					stylesheet = new WebEditStyleSheet();
+					stylesheet.loadRules(req.openReader(), req.encode());
+					document.getStyleSheet().addStyleSheet(stylesheet);
+					if (spath.endsWith(".css"))
+					{
+						spath = spath.substring(0, spath.length()-3)+"sml";
+						try
+						{
+							req = new Request(swim, "view", spath);
+							styles.loadFrom(req.openReader());
+						}
+						catch (Exception e)
+						{
+							log.debug("Could not load style configuration", e);
+						}
+					}
+				}
+				catch (Exception e)
+				{
+					log.warn("Could not load stylesheet "+spath, e);
+				}
+			}
+
+			Request req = new Request(swim, "view", "version/temp/"+htmlPath);
 			document.setBase(req.encode());
 			editorPane.setDocument(document);
-			
-			body=findBody(document.getDefaultRootElement());
-			StringBuffer html = new StringBuffer(swim.getResource(htmlPath,"temp"));
-			//html.insert(0,"<div id=\"content\" class=\"block\">\n");
-			//html.append("</div>\n");
-			document.setInnerHTML(body,html.toString());
+
+			body = findBody(document.getDefaultRootElement());
+			StringBuffer html = new StringBuffer(swim.getResource(htmlPath, "temp"));
+			document.setInnerHTML(body, html.toString());
 		}
 		catch (Exception e)
 		{
 			log.error(e);
 			e.printStackTrace();
-			ErrorReporter.sendErrorReport(
-					"Error loading content","The text to be edited could not be loaded. The server could be down or misconfigured.",
-					"Swim","WebEdit","Could not load content",e);
+			ErrorReporter
+					.sendErrorReport(
+							"Error loading content",
+							"The text to be edited could not be loaded. The server could be down or misconfigured.",
+							"Swim", "WebEdit", "Could not load content", e);
 		}
-		//updateToolbar();
+		updateToolbar();
 	}
 }

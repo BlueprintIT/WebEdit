@@ -1,6 +1,7 @@
 package com.blueprintit.webedit;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -24,6 +25,7 @@ public class ImageDialog implements InterfaceListener
 
 	public JTextField textAttachment;
 	public JTextField textExternal;
+	public JTextField textAlternate;
 
 	public JRadioButton radioExternal;
 	public JRadioButton radioAttachment;
@@ -36,6 +38,7 @@ public class ImageDialog implements InterfaceListener
 	
 	public String path;
 	private String attachments;
+	public String alternate;
 	
 	public int result = RESULT_CANCEL;
 	
@@ -43,11 +46,15 @@ public class ImageDialog implements InterfaceListener
 	public static int RESULT_OK = 1;
 	public static int RESULT_DELETE = 2;
 	
-	public ImageDialog(SwimInterface swim, String attachments, String path)
+	public File currentdir;
+
+	public ImageDialog(SwimInterface swim, File current, String attachments, String path, String alternate)
 	{
 		this.swim=swim;
 		this.path=path;
 		this.attachments=attachments;
+		this.currentdir=current;
+		this.alternate=alternate;
 	}
 	
 	private void radioSelectionChanged()
@@ -78,7 +85,9 @@ public class ImageDialog implements InterfaceListener
 	public Action changeAttachmentAction = new AbstractAction("Change...") {
 		public void actionPerformed(ActionEvent e)
 		{
-			RemoteFile file = (new AttachmentDialog(swim,attachments)).select();
+			AttachmentDialog dlg = new AttachmentDialog(swim,currentdir,attachments);
+			RemoteFile file = dlg.select();
+			currentdir=dlg.getCurrentDirectory();
 			if (file!=null)
 			{
 				textAttachment.setText(file.getName());
@@ -98,6 +107,7 @@ public class ImageDialog implements InterfaceListener
 		public void actionPerformed(ActionEvent e)
 		{
 			result=RESULT_OK;
+			alternate=textAlternate.getText();
 			dialog.setVisible(false);
 		}
 	};
@@ -125,19 +135,18 @@ public class ImageDialog implements InterfaceListener
 
 	public void interfaceCreated(InterfaceEvent ev)
 	{
+		textAlternate.setText(alternate);
 		if (path!=null)
 		{
 			if (path.indexOf("://")>0)
 			{
 				radioExternal.setSelected(true);
 				textExternal.setText(path);
-				path=null;
 			}
 			else if (path.startsWith("attachments/"))
 			{
 				radioAttachment.setSelected(true);
 				textAttachment.setText(path.substring(12));
-				path=null;
 			}
 		}
 		radioSelectionChanged();

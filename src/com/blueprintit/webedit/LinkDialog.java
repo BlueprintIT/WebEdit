@@ -1,6 +1,7 @@
 package com.blueprintit.webedit;
 
 import java.awt.event.ActionEvent;
+import java.io.File;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -44,17 +45,20 @@ public class LinkDialog implements InterfaceListener
 	public String path;
 	private String attachments;
 	
+	File currentdir;
+
 	public int result = RESULT_CANCEL;
 	
 	public static int RESULT_CANCEL = 0;
 	public static int RESULT_OK = 1;
 	public static int RESULT_DELETE = 2;
 	
-	public LinkDialog(SwimInterface swim, String attachments, String path)
+	public LinkDialog(SwimInterface swim, File current, String attachments, String path)
 	{
 		this.swim=swim;
 		this.path=path;
 		this.attachments=attachments;
+		this.currentdir=current;
 	}
 	
 	private void radioSelectionChanged()
@@ -106,7 +110,9 @@ public class LinkDialog implements InterfaceListener
 	public Action changeAttachmentAction = new AbstractAction("Change...") {
 		public void actionPerformed(ActionEvent e)
 		{
-			RemoteFile file = (new AttachmentDialog(swim,attachments)).select();
+			AttachmentDialog dlg = new AttachmentDialog(swim,currentdir,attachments);
+			RemoteFile file = dlg.select();
+			currentdir=dlg.getCurrentDirectory();
 			if (file!=null)
 			{
 				path="attachments/"+file.getName();
