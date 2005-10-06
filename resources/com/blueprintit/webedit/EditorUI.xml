@@ -26,7 +26,7 @@
 			<button action="cancelAction" focusable="false" toolTipText="Cancel editing and delete the working copy.">Cancel</button>
 			<button action="saveAction" focusable="false" toolTipText="Save the current edits to the working version and do not put on line.">Save Working Version</button>
 			<button action="commitAction" focusable="false" toolTipText="Save the current edits and put on line.">Save &amp; Commit</button>
-			<button action="dumpAction" focusable="false">Dump</button>
+			<!--<button action="dumpAction" focusable="false">Dump</button>-->
 			<separator/>
 			<button id="cut" action="cutAction" focusable="false"/>
 			<button id="copy" action="copyAction" focusable="false"/>
@@ -47,7 +47,7 @@
 			<separator/>
 			<combobox id="style" focusable="false" action="applyStyleAction"/>
 			<separator/>
-			<button id="ilist" action="increaseListAction" focusable="false" text="Increase"/>
+			<!--<button id="ilist" action="increaseListAction" focusable="false" text="Increase"/>-->
 			<button id="olist" action="orderedListAction" focusable="false"/>
 			<button id="ulist" action="unorderedListAction" focusable="false"/>
 			<separator/>

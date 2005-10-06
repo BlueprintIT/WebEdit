@@ -733,7 +733,7 @@ public class EditorUI implements InterfaceListener
 		editorPane.addCaretListener(new CaretListener() {
 			public void caretUpdate(CaretEvent e)
 			{
-				int offset = e.getDot();
+				/*int offset = e.getDot();
 				System.out.println("Caret moved to "+offset);
 				Element el = document.getCharacterElement(offset);
 				Element par = document.getParagraphElement(offset);
@@ -749,7 +749,7 @@ public class EditorUI implements InterfaceListener
 				}
 				System.out.println();
 				
-				/*while (el!=null)
+				while (el!=null)
 				{
 					System.out.println("Element "+el.getStartOffset()+" "
 															+el.getEndOffset()+" "+el.getElementCount()+" ("
